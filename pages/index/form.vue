@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { getProjectDetailApi, getProjectStationApi, getDeptApi, getAreaApi, addProjectApi, updateProjectApi } from '@/api'
+import { getProjectDetailApi, checkProjectCodeApi, getProjectStationApi, getDeptApi, getAreaApi, addProjectApi, updateProjectApi } from '@/api'
 
 const loading = ref(false)
 const form = ref(null)
@@ -82,6 +82,20 @@ const getArea = async (parentId, key, index) => {
         }
         break
     }
+  }
+}
+
+const handleProjectCodeBlur = async ({value: val}) => {
+  if (!val) return
+  const res = await checkProjectCodeApi({ projectCode: val, projectId: model.value.projectId })
+  if (res.code === 200) {
+    model.value.projectCode = val
+  } else {
+    uni.showToast({
+      title: '项目编码已存在, 请重新输入',
+      icon: 'none'
+    })
+    model.value.projectCode = ''
   }
 }
 
@@ -204,7 +218,7 @@ onLoad(async (options) => {
       <wd-form ref="form" :model="model" :rules="rules" errorType="toast">
         <wd-cell-group title="项目信息" border>
           <wd-input prop="projectCode" v-model="model.projectCode" label="项目编码" placeholder="请输入项目编码" type="text"
-            label-width="80px" />
+            label-width="80px" @blur="handleProjectCodeBlur" />
           <wd-input prop="projectName" v-model="model.projectName" label="项目名称" placeholder="请输入项目名称" type="text"
             label-width="80px" />
           <wd-input prop="projectManagerName" v-model="model.projectManagerName" label="项目经理" placeholder="请输入项目经理姓名"

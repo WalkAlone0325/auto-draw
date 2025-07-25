@@ -15,6 +15,9 @@ export const updateProjectApi = (params) => http.put(`/op/projectInfo`, params)
 // 删除项目
 export const deleteProjectApi = (params) => http.delete(`/op/projectInfo/${params}`)
 
+// 项目编码校验
+export const checkProjectCodeApi = (params) => http.get(`/op/projectInfo/check/projectCode`, { params })
+
 // 站点列表信息
 export const getProjectStationApi = (params) => http.get(`/op/projectStationInfo/list`, { params })
 
