@@ -24,5 +24,8 @@ export const getProjectStationApi = (params) => http.get(`/op/projectStationInfo
 // 部门列表
 export const getDeptApi = (params) => http.get(`/system/dept/select/`, { params })
 
+// 字典列表
+export const getDictApi = (params) => http.get(`/system/dict/data/type/${params}`)
+
 // 省市区
 export const getAreaApi = (params) => http.get(`/system/dict/region/list/parent/${params}`)

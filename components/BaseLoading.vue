@@ -1,7 +1,7 @@
 <template>
   <view class="loading-con">
-    <wd-loading v-if="loading" />
-    <text>加载中...</text>
+    <wd-loading v-if="loading" :size="30"/>
+    <text style="margin-top: 20rpx;">加载中...</text>
   </view>
 </template>
 

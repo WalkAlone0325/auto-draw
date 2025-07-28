@@ -26,9 +26,21 @@
       }
     },
     {
+      "path": "pages/collect/map",
+      "style": {
+        "navigationBarTitleText": "数据采集"
+      }
+    },
+    {
       "path": "pages/mine/index",
       "style": {
         "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/mine/info",
+      "style": {
+        "navigationBarTitleText": "个人信息"
       }
     },
     {
@@ -51,7 +63,7 @@
       },
       {
         "pagePath": "pages/collect/index",
-        "text": "求职",
+        "text": "采集",
         "iconPath": "static/tab/collect.png",
         "selectedIconPath": "static/tab/collect-a.png"
       },

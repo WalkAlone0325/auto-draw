@@ -44,7 +44,6 @@ const search = (val) => {
   query.value.pageNum = 1
   list.value = []
   total.value = 0
-  console.log('🚀:>> ', query)
   getList()
 }
 
@@ -128,7 +127,7 @@ const clickDelete = async (i) => {
           <template #footer>
             <view class="footer">
               <view style="display: flex;">
-                <view class="value" v-if="i.createTime" style="margin-right: 30rpx;">{{ i.createTime }}</view>
+                <view class="value" v-if="i.projectVersionsCreateTime" style="margin-right: 30rpx;">{{ i.projectVersionsCreateTime }}</view>
                 <view class="value">{{ i.projectOwnershipCompanyName }}</view>
               </view>
               <view style="display: flex; align-items: center;">
@@ -139,10 +138,10 @@ const clickDelete = async (i) => {
           </template>
         </wd-card>
       </view>
-      <wd-loadmore :state="state" @reload="loadMore" />
+      <wd-loadmore :state="state" @reload="loadMore" :loading-props="{ size: 20 }" />
     </view>
 
-    <wd-fab custom-class="fab-con" :expandable="false" @click="clickDetail"></wd-fab>
+    <wd-fab :expandable="false" @click="clickDetail"></wd-fab>
   </view>
 </template>
 

@@ -34,6 +34,7 @@ const cancel = () => {
     <view style="width: 100vw;">
       <wd-search placeholder-left v-model="value" @search="search" @clear="cancel" @cancel="cancel"
         :placeholder="placeholder" />
+      <slot />
     </view>
   </wd-sticky>
 </template>

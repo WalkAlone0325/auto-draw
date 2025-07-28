@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { getProjectDetailApi, checkProjectCodeApi, getProjectStationApi, getDeptApi, getAreaApi, addProjectApi, updateProjectApi } from '@/api'
+import { getProjectDetailApi, checkProjectCodeApi, getProjectStationApi, getDeptApi, getDictApi, getAreaApi, addProjectApi, updateProjectApi } from '@/api'
 
 const loading = ref(false)
 const form = ref(null)
@@ -39,6 +39,15 @@ const getCompany = async () => {
   const res = await getDeptApi({})
   if (res.code === 200) {
     companyColumns.value = res.data
+  }
+}
+
+// 发布状态
+const statusColumns = ref([])
+const getStatus = async () => {
+  const res = await getDictApi('publish_status')
+  if (res.code === 200) {
+    statusColumns.value = res.data
   }
 }
 
@@ -199,8 +208,8 @@ const getDetail = async (id) => {
 }
 
 onLoad(async (options) => {
-  console.log('🚀:>> ', options)
   getCompany()
+  getStatus()
   getArea(0, 'provinceColumns')
   if (options.id) {
     await getDetail(options.id)
@@ -240,12 +249,12 @@ onLoad(async (options) => {
             placeholder="请选择归属区县" v-model="model.countyCode" prop="countyCode" />
           <wd-input label="备注" label-width="80px" prop="remark" clearable v-model="model.remark" placeholder="请输入备注" />
 
-          <!-- <wd-picker label="发布状态" :disabled="true" :columns="companyColumns" label-key="text" label-width="80px"
-            placeholder="请选择发布状态" v-model="model.projectOwnershipCompanyCode" prop="projectOwnershipCompanyCode" />
-          <wd-input label="项目版本" :disabled="true" prop="projectVersion" v-model="model.projectVersion"
+          <wd-picker label="发布状态" :disabled="true" :columns="statusColumns" label-key="dictLabel" value-key="dictValue" label-width="80px"
+            placeholder="请选择发布状态" v-model="model.publishStatusCode" prop="publishStatusCode" />
+          <wd-input label="项目版本" :disabled="true" prop="projectVersions" v-model="model.projectVersions"
             placeholder="请输入项目版本" type="text" label-width="80px" />
-          <wd-datetime-picker label="版本时间" :disabled="true" label-width="80px" placeholder="请选择版本时间" prop="versionTime"
-            v-model="model.versionTime" /> -->
+          <wd-datetime-picker label="版本时间" :disabled="true" label-width="80px" placeholder="请选择版本时间" prop="projectVersionsCreateTime"
+            v-model="model.projectVersionsCreateTime" />
         </wd-cell-group>
 
         <wd-cell-group custom-class="group" title="站点信息" border center>
