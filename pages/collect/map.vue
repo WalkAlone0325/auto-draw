@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { getParagraphListApi, getNodeListApi } from '@/api'
 
 const latitude = ref(39.904989)
 const longitude = ref(116.405285)
@@ -15,10 +16,47 @@ const show = ref(false)
 
 const clickOpenPopup = () => {
   show.value = true
+  getList()
 }
 
 const close = () => {
   show.value = false
+}
+
+const tab = ref(0)
+
+const handleTabChange = (val) => {
+  tab.value = val
+}
+
+const loading = ref(false)
+const list = ref([])
+const total = ref(0)
+const getList = async () => {
+  loading.value = true
+  if (tab.value === 0) {
+    const res = await getParagraphListApi({
+      pageNum: 1,
+      pageSize: 10,
+      projectName: ''
+    })
+    if (res.code === 200) {
+      list.value = res.rows
+      total.value = res.total
+      loading.value = false
+    }
+  } else {
+    const res = await getNodeListApi({
+      pageNum: 1,
+      pageSize: 10,
+      projectName: ''
+    })
+    if (res.code === 200) {
+      list.value = res.rows
+      total.value = res.total
+      loading.value = false
+    }
+  }
 }
 </script>
 
@@ -43,8 +81,19 @@ const close = () => {
       </view>
     </map>
 
-    <wd-popup v-model="show" position="left" custom-style="width: 70%" @close="close">
-      <text class="custom-txt">弹弹弹</text>
+    <wd-popup v-model="show" position="left" custom-style="width: 80%" @close="close">
+      <wd-tabs v-model="tab" @change="handleTabChange" auto-line-width>
+        <wd-tab title="段落"></wd-tab>
+        <wd-tab title="节点"></wd-tab>
+      </wd-tabs>
+
+      <BaseLoading :loading="loading" v-if="loading && !list.length"/>
+      <view class="main-content" v-else>
+        <view class="list">
+          <BaseInfoCard v-for="i in list" :key="i.id" :infos="i" />
+        </view>
+        <text class="custom-txt">弹弹弹</text>
+      </view>
     </wd-popup>
 
   </view>

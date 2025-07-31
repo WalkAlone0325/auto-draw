@@ -1,4 +1,3 @@
-
 <script setup>
 import { reactive, ref } from 'vue'
 import { encrypt } from '@/utils/jsencrypt'
@@ -66,4 +65,40 @@ function handleSubmit() {
   </view>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.login-con {
+  opacity: 1;
+  z-index: 999;
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 25%;
+  background-color: #fff;
+  border-radius: 20rpx;
+
+  .log-header-img {
+    border-radius: 20rpx 20rpx 0 0;
+    width: 100%;
+    height: 300rpx;
+    margin: 0 auto;
+  }
+
+  .login-form {
+    padding: 10rpx 20rpx;
+    padding-top: 40rpx;
+  }
+
+  .title {
+    padding-bottom: 40rpx;
+    text-align: center;
+    font-size: 34rpx;
+    font-weight: 500;
+    color: #333;
+  }
+}
+
+.footer {
+  padding: 24rpx;
+  padding-bottom: 40rpx;
+}
+</style>

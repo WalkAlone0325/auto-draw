@@ -56,13 +56,12 @@ const clickCell = (i) => {
       </view>
       <wd-cell-group border center>
         <wd-cell center size="large" clickable v-for="i in cells" :key="i.title" @click="clickCell(i)">
-          <template>
+          <!-- <template #default>
             <wd-icon name="arrow-right" size="18px" color="#999"></wd-icon>
-          </template>
+          </template> -->
           <template #icon>
             <view class="cell-con">
               <image class="icon" :src="i.icon" mode="widthFix"></image>
-              <!-- <wd-icon custom-style="margin-right: 12rpx" :name="i.icon" size="24px" color="#666"></wd-icon> -->
               <view class="title">{{ i.title }}</view>
             </view>
           </template>
