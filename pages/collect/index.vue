@@ -64,8 +64,9 @@ onShow(() => {
 })
 
 const clickDetail = (i) => {
+  const str = i ? `projectId=${i.projectId}&projectStationLineId=${i.projectStationLineId}&projectStationId=${i.projectStationId}` : ''
   uni.navigateTo({
-    url: `/pages/collect/map?${i ? `id=${i.projectId}` : ''}`
+    url: `/pages/collect/map?${str}`
   })
 }
 

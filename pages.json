@@ -57,7 +57,7 @@
     "backgroundColor": "#ffffff",
     "list": [{
         "pagePath": "pages/index/index",
-        "text": "首页",
+        "text": "项目",
         "iconPath": "static/tab/project.png",
         "selectedIconPath": "static/tab/project-a.png"
       },

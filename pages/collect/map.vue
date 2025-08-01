@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { getParagraphListApi, getNodeListApi } from '@/api'
+import { onLoad } from '@dcloudio/uni-app'
 
 const latitude = ref(39.904989)
 const longitude = ref(116.405285)
@@ -16,6 +17,8 @@ const show = ref(false)
 
 const clickOpenPopup = () => {
   show.value = true
+  list.value = []
+  total.value = 0
   getList()
 }
 
@@ -25,8 +28,10 @@ const close = () => {
 
 const tab = ref(0)
 
-const handleTabChange = (val) => {
-  tab.value = val
+const handleTabChange = ({index}) => {
+  console.log('🚀:>> ', index)
+  tab.value = index
+  getList()
 }
 
 const loading = ref(false)
@@ -35,29 +40,69 @@ const total = ref(0)
 const getList = async () => {
   loading.value = true
   if (tab.value === 0) {
+    // 段落
     const res = await getParagraphListApi({
       pageNum: 1,
       pageSize: 10,
-      projectName: ''
+      projectStationLineId: query.value.projectStationLineId,
+      order: 'asc'
     })
     if (res.code === 200) {
-      list.value = res.rows
+      list.value = res.rows.map(item => {
+        return {
+          ...item,
+          infos: [
+            {label: '段落编码', value: item.sectionCode},
+            {label: '段落类别', value: item.sectionClassesName},
+            {label: '段落距离', value: item.sectionDistance},
+            {label: '段落名称', value: item.sectionNameName},
+            {label: '段落类型', value: item.sectionTypeName},
+            {label: '段落属性', value: item.sectionAttributeName},
+            {label: '段落数量', value: item.sectionMaterialsCount}
+          ]
+        }
+      })
       total.value = res.total
       loading.value = false
     }
   } else {
+    // 节点
     const res = await getNodeListApi({
       pageNum: 1,
       pageSize: 10,
-      projectName: ''
+      projectStationLineId: query.value.projectStationLineId,
+      order: 'asc'
     })
     if (res.code === 200) {
-      list.value = res.rows
+      list.value = res.rows.map(item => {
+        return {
+          ...item,
+          infos: [
+            {label: '节点编号', value: item.nodeCode},
+            {label: '节点属性', value: item.nodeClassesName},
+            {label: '杆路类型', value: item.nodeTypeName},
+            {label: '节点类型', value: item.polePathTypeName},
+            {label: '节点名称', value: item.nodeNameName},
+            {label: '节点规格', value: item.nodeMaterialsCount}
+          ]
+        }
+      })
       total.value = res.total
       loading.value = false
     }
   }
 }
+
+const query = ref({
+  projectStationLineId: '',
+  projectStationId: '',
+  projectId: ''
+})
+onLoad((param) => {
+  if(param) {
+    query.value = param
+  }
+})
 </script>
 
 <template>
@@ -90,9 +135,8 @@ const getList = async () => {
       <BaseLoading :loading="loading" v-if="loading && !list.length"/>
       <view class="main-content" v-else>
         <view class="list">
-          <BaseInfoCard v-for="i in list" :key="i.id" :infos="i" />
+          <BaseInfoCard v-for="i in list" :key="i.id" :infos="i.infos" />
         </view>
-        <text class="custom-txt">弹弹弹</text>
       </view>
     </wd-popup>
 
