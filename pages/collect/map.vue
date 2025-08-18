@@ -157,7 +157,7 @@ const getParagraphList = async () => {
             { label: '段落数量', value: i.sectionMaterialsCount }
           ]
         },
-        color: '#007AFF',
+        color: '#8268de',
         width: 3,
         points: [{ latitude: i.startNodePlaceLatitude, longitude: i.startNodePlaceLongitude }, { latitude: i.endNodePlaceLatitude, longitude: i.endNodePlaceLongitude }]
       }
@@ -286,7 +286,7 @@ const clickMarker = (e) => {
     }
     markers.value[idx].iconPath = '/static/polyline-a.png'
     polyline.value.forEach(element => {
-      element.color = '#007AFF'
+      element.color = '#8268de'
     })
     polyline.value.find(i => i.pId === markers.value[idx].id).color = '#d81e06'
     boxItem.value = markers.value[idx].raw
@@ -300,7 +300,7 @@ const clickMarker = (e) => {
       markers.value[lastNodeIdx.value].iconPath = '/static/location.png'
     }
     polyline.value.forEach(element => {
-      element.color = '#007AFF'
+      element.color = '#8268de'
     })
     markers.value[idxn].iconPath = '/static/location-a.png'
     boxItem.value = markers.value[idxn].raw

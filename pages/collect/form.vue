@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { getTypeApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getNodeDetailApi, addSectionApi, getSectionCodeApi } from '@/api'
+import { getTypeApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getNodeDetailApi, addSectionApi, getNodeListApi, getSectionCodeApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 
 const model = ref({
@@ -37,6 +37,27 @@ const rules = ref({
   polePathTypeId: [
     { required: true, message: '请选择杆路类型', trigger: 'blur' }
   ],
+  endStationLineNodeName: [
+    { required: true, message: '请选择段落名称', trigger: 'blur' }
+  ],
+  sectionDistance: [
+    { required: true, message: '请输入段落距离', trigger: 'blur' }
+  ],
+  sectionTypeId: [
+    { required: true, message: '请选择段落类型', trigger: 'blur' }
+  ],
+  sectionNameId: [
+    { required: true, message: '请选择段落名称', trigger: 'blur' }
+  ],
+  sectionMaterialsCount: [
+    { required: true, message: '请输入段落数量', trigger: 'blur' }
+  ],
+  sectionClassesId: [
+    { required: true, message: '请选择段落类别', trigger: 'blur' }
+  ],
+  sectionCode: [
+    { required: true, message: '请输入段落编号', trigger: 'blur' }
+  ]
 })
 const param = ref({
   projectStationLineId: '',
@@ -128,8 +149,13 @@ const handleSubmit = async () => {
     })
     if (res.code === 200) {
       if (isShow.value) {
+        let code
+        const cRes = await getNodeListApi({ projectStationLineId: curId.value })
+        if(cRes.code === 200) {
+          code = cRes.rows[cRes.rows.length - 1].projectStationLineNodeId
+        }
         const res = await addSectionApi({
-          endStationLineNodeId: model.value.nodeCode,
+          endStationLineNodeId: code,
           sectionCode: model.value.sectionCode,
           sectionClassesId: model.value.sectionClassesId,
           sectionNameId: model.value.sectionNameId,
