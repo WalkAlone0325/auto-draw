@@ -32,6 +32,38 @@
       }
     },
     {
+      "path": "pages/collect/stage-form",
+      "style": {
+        "navigationBarTitleText": "编辑段落"
+      }
+    },
+    {
+      "path": "pages/collect/node-form",
+      "style": {
+        "navigationBarTitleText": "编辑节点"
+      }
+    },
+    {
+      "path": "pages/collect/form",
+      "style": {
+        "navigationBarTitleText": "开始采集"
+      }
+    },
+    {
+      "path": "pages/collect/select-map",
+      "style": {
+        "enablePullDownRefresh": false,
+        "navigationBarTitleText": "坐标确认"
+      }
+    },
+    {
+      "path": "pages/collect/select-node",
+      "style": {
+        "enablePullDownRefresh": false,
+        "navigationBarTitleText": "选择节点"
+      }
+    },
+    {
       "path": "pages/mine/index",
       "style": {
         "navigationBarTitleText": "我的"

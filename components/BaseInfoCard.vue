@@ -1,23 +1,58 @@
 <script setup>
-defineProps({
-  infos: {
-    type: Array,
-    default: () => []
+const props = defineProps({
+  item: {
+    type: Object,
+    default: () => {}
+  },
+  tab: {
+    type: Number,
+    default: 0
+  },
+  noBtn: {
+    type: Boolean,
+    default: false
   }
 })
+
+const emit = defineEmits(['del', 'edit', 'copy'])
+
+const del = (item) => {
+  emit('del', item)
+}
+
+const edit = (item) => {
+  const { tab } = props
+  const MAP = {
+    0: '/pages/collect/stage-form', // 段落
+    1: '/pages/collect/node-form' // 节点
+  }
+  const url = MAP[tab] + '?id=' + item.projectStationLineSectionId + '&projectStationLineId=' + item.projectStationLineId + '&projectStationLineNodeId=' + item.projectStationLineNodeId
+  uni.navigateTo({
+    url
+  })
+  emit('edit', item)
+}
+
+const copy = (item) => {
+  emit('copy', item)
+}
+
+const select = (item) => {
+  emit('select', item)
+}
 </script>
 
 <template>
-  <view class="info-card">
-    <view class="info-item" v-for="i in infos" :key="i.label">
+  <view class="info-card" v-if="!item.isHidden" @click="select(item)">
+    <view class="info-item" v-for="i in item.infos" :key="i.label">
       <view class="info-label">{{ i.label }}：</view>
       <view class="info-value">{{ i.value }}</view>
     </view>
 
-    <view class="btn-con">
-      <view class="btn">删除段落</view>
-      <view class="btn">编辑段落</view>
-      <view class="btn">复制段落</view>
+    <view class="btn-con" v-if="!noBtn">
+      <view class="btn" @click="del(item)">删除{{ tab === 0 ? '段落' : '节点' }}</view>
+      <view class="btn" @click="edit(item)">编辑{{ tab === 0 ? '段落' : '节点' }}</view>
+      <view class="btn" @click="copy(item)">复制{{ tab === 0 ? '段落' : '坐标' }}</view>
     </view>
   </view>
 </template>

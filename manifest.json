@@ -62,7 +62,16 @@
             "scope.userLocation" : {
                 "desc" : "需要获取地图信息"
             }
-        }
+        },
+        "requiredPrivateInfos": [
+          "getLocation",
+          "onLocationChange",
+          "startLocationUpdateBackground",
+          "startLocationUpdate",
+          "chooseLocation",
+          "chooseAddress",
+          "choosePoi"
+        ]
     },
     "mp-alipay" : {
         "usingComponents" : true

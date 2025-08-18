@@ -64,10 +64,20 @@ onShow(() => {
 })
 
 const clickDetail = (i) => {
-  const str = i ? `projectId=${i.projectId}&projectStationLineId=${i.projectStationLineId}&projectStationId=${i.projectStationId}` : ''
-  uni.navigateTo({
-    url: `/pages/collect/map?${str}`
+  uni.setStorage({
+    key: 'info',
+    data: {
+      projectName: i.projectName,
+      projectStationName: i.projectStationName
+    },
+    success: () => {
+      const str = i ? `projectId=${i.projectId}&projectStationLineId=${i.projectStationLineId}&projectStationId=${i.projectStationId}` : ''
+      uni.navigateTo({
+        url: `/pages/collect/map?${str}`
+      })
+    }
   })
+
 }
 
 const tab = ref(0)

@@ -100,7 +100,7 @@ const clickDelete = async (i) => {
         <wd-card>
           <template #title>
             <view class="title-con">
-              <view>{{ i.projectName }}</view>
+              <view style="width: 90%;">{{ i.projectName }}</view>
               <view class="status-tip" :style="{ background: i.publishStatusCode === 'published' ? '#4D80F0' : '#fa4350' }">{{ i.publishStatusName }}</view>
             </view>
           </template>
