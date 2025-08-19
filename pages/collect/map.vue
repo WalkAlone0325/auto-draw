@@ -22,15 +22,22 @@ const initMap = () => {
   })
 }
 
+const clickLocal = () => {
+  latitude.value = ''
+  longitude.value = ''
+  initMap()
+}
+
 onLoad(() => {
   // initMap()
-  uni.$on('refresh', () => {
+  uni.$on('refresh', async () => {
     console.log('🚀:>> ', 111)
+    show.value = false
     pTotal.value = 0
-    nTotal.value = 0
-    markers.value = []
     polyline.value = []
     getParagraphList()
+    nTotal.value = 0
+    markers.value = []
     getNodeList()
     showBox.value = false
   })
@@ -47,15 +54,43 @@ const param = ref({
 onLoad((option) => {
   if (option) {
     param.value = option
-    console.log('🚀:>> ', param.value)
+    pTotal.value = 0
+    nTotal.value = 0
+    markers.value = []
+    polyline.value = []
     getParagraphList()
     getNodeList()
   }
 })
 
+const tab = ref(0)
+// 点击打开弹窗
 const clickOpenPopup = () => {
+  list.value = []
+  if(tab.value == 0) {
+    list.value = polyline.value
+  } else {
+    list.value = markers.value.filter(i => !i.isHidden)
+  }
+  console.log('🚀:>> ', list.value)
   show.value = true
 }
+
+const close = () => {
+  show.value = false
+}
+
+const handleTabChange = ({ index }) => {
+  tab.value = index
+  list.value = []
+  query.value.pageNum = 1
+  if (tab.value === 0) {
+    list.value = polyline.value
+  } else {
+    list.value = markers.value.filter(i => !i.isHidden)
+  }
+}
+
 const clickAdd = (tab) => {
   const queryStr = `projectStationLineId=${param.value.projectStationLineId}&projectStationId=${param.value.projectStationId}&projectId=${param.value.projectId}`
   if (tab === 0) {
@@ -78,30 +113,10 @@ const clickCollect = () => {
   })
 }
 
-const close = () => {
-  show.value = false
-}
-
-const tab = ref(0)
-
-const handleTabChange = ({ index }) => {
-  tab.value = index
-  pTotal.value = 0
-  nTotal.value = 0
-  markers.value = []
-  polyline.value = []
-  query.value.pageNum = 1
-  if (tab.value === 0) {
-    getParagraphList()
-  } else {
-    getNodeList()
-  }
-}
-
-const state = ref('loading')
 const loading = ref(false)
 const pTotal = ref(0)
 const nTotal = ref(0)
+const list = ref([])
 const query = ref({
   // pageNum: 1,
   // pageSize: 10,
@@ -127,11 +142,11 @@ const getParagraphList = async () => {
           infos: [
             { label: '段落编码', value: i.sectionCode },
             { label: '段落类别', value: i.sectionClassesName },
-            { label: '段落距离', value: i.sectionDistance },
             { label: '段落名称', value: i.sectionNameName },
-            { label: '段落类型', value: i.sectionTypeName },
-            { label: '段落属性', value: i.sectionAttributeName },
-            { label: '段落数量', value: i.sectionMaterialsCount }
+            { label: '段落距离', value: (i.sectionDistance || 0) + '米', row: 1 },
+            { label: '段落类型', value: i.sectionTypeName, row: 2 },
+            { label: '段落属性', value: i.sectionAttributeName, row: 1 },
+            { label: '段落数量', value: i.sectionMaterialsCount, row: 2 }
           ]
         },
         id: idx + 9000001,
@@ -141,6 +156,12 @@ const getParagraphList = async () => {
         anchor: { x: 0.5, y: 0.5 },
         latitude: (Number(i.startNodePlaceLatitude) + Number(i.endNodePlaceLatitude)) / 2,
         longitude: (Number(i.startNodePlaceLongitude) + Number(i.endNodePlaceLongitude)) / 2,
+        label: {
+          content: calcCount(data, i, 'isHidden') || 1,
+          color: '#000',
+          fontSize: 16,
+          position: 'bottom'
+        }
       })
       return {
         id: i.projectStationLineSectionId,
@@ -150,11 +171,11 @@ const getParagraphList = async () => {
           infos: [
             { label: '段落编码', value: i.sectionCode },
             { label: '段落类别', value: i.sectionClassesName },
-            { label: '段落距离', value: i.sectionDistance },
             { label: '段落名称', value: i.sectionNameName },
-            { label: '段落类型', value: i.sectionTypeName },
-            { label: '段落属性', value: i.sectionAttributeName },
-            { label: '段落数量', value: i.sectionMaterialsCount }
+            { label: '段落距离', value: (i.sectionDistance || 0) + ' 米', row: 1 },
+            { label: '段落类型', value: i.sectionTypeName, row: 2 },
+            { label: '段落属性', value: i.sectionAttributeName, row: 1 },
+            { label: '段落数量', value: i.sectionMaterialsCount, row: 2 }
           ]
         },
         color: '#8268de',
@@ -168,6 +189,20 @@ const getParagraphList = async () => {
   uni.hideLoading()
 }
 
+// 计算数量
+const calcCount = (data, curItem, type) => {
+  let len
+  if (type) {
+    const res = data.map(i => `${(Number(i.startNodePlaceLatitude) + Number(i.endNodePlaceLatitude)) / 2},${(Number(i.startNodePlaceLongitude) + Number(i.endNodePlaceLongitude)) / 2}`)
+    const cur = `${(Number(curItem.startNodePlaceLatitude) + Number(curItem.endNodePlaceLatitude)) / 2},${(Number(curItem.startNodePlaceLongitude) + Number(curItem.endNodePlaceLongitude)) / 2}`
+    len = res.filter(i => i === cur).length
+  } else {
+    const res = data.map(i => `${i.nodePlaceLatitude},${i.nodePlaceLongitude}`)
+    const cur = `${curItem.nodePlaceLatitude},${curItem.nodePlaceLongitude}`
+    len = res.filter(i => i === cur).length
+  }
+  return len
+}
 // 获取节点
 const getNodeList = async () => {
   uni.showLoading({ title: '加载中', mask: true })
@@ -185,11 +220,11 @@ const getNodeList = async () => {
         ...i,
         infos: [
           { label: '节点编号', value: i.nodeCode },
-          { label: '节点属性', value: i.nodeClassesName },
-          { label: '杆路类型', value: i.nodeTypeName },
-          { label: '节点类型', value: i.polePathTypeName },
-          { label: '节点名称', value: i.nodeNameName },
-          { label: '节点规格', value: i.nodeMaterialsCount }
+          { label: '节点属性', value: i.nodeAttributeName, row: 1 },
+          { label: '杆路类型', value: i.nodeTypeName, row: 2 },
+          { label: '节点类型', value: i.polePathTypeName, row: 1 },
+          { label: '节点名称', value: i.nodeNameName, row: 2 },
+          { label: '节点规格', value: i.nodeSpecificationName, row: 1 }
         ]
       },
       id: i.projectStationLineNodeId,
@@ -200,7 +235,7 @@ const getNodeList = async () => {
       width: 24,
       height: 24,
       label: {
-        content: `${idx + 1}`,
+        content: calcCount(data, i) || 1,
         color: '#000',
         fontSize: 16,
         position: 'bottom'
@@ -216,6 +251,7 @@ const getNodeList = async () => {
 
 // 删除段落，节点
 const delItem = async (item) => {
+  console.log('🚀:>> ', item)
   uni.showModal({
     title: '提示',
     content: '确定删除吗？',
@@ -231,18 +267,15 @@ const delItem = async (item) => {
           uni.showToast({
             title: '删除成功'
           })
+          show.value = false
           polyline.value = []
           markers.value = []
           pTotal.value = 0
           nTotal.value = 0
           showBox.value = false
-          state.value = 'loading'
           query.value.pageNum = 1
-          if (tab.value === 0) {
-            getParagraphList()
-          } else {
-            getNodeList()
-          }
+          getNodeList()
+          getParagraphList()
         }
       }
     }
@@ -270,8 +303,6 @@ const clickMap = (e) => {
 
 const showBox = ref(false)
 const boxItem = ref({})
-const lastNodeIdx = ref(-1)
-const lastPolyIdx = ref(-1)
 
 const clickMarker = (e) => {
   const { markerId } = e.detail
@@ -280,31 +311,35 @@ const clickMarker = (e) => {
   // 段落
   if (markerId > 9000000 && markers.value[idx].isHidden) {
     tab.value = 0
-    if (lastPolyIdx.value !== -1 && lastNodeIdx.value !== -1) {
-      markers.value[lastPolyIdx.value].iconPath = '/static/polyline.png'
-      markers.value[lastNodeIdx.value].iconPath = '/static/location.png'
-    }
+    markers.value.forEach(i => {
+      if(i.isHidden) {
+        i.iconPath = '/static/polyline.png'
+      } else {
+        i.iconPath = '/static/location.png'
+      }
+    })
     markers.value[idx].iconPath = '/static/polyline-a.png'
     polyline.value.forEach(element => {
       element.color = '#8268de'
     })
     polyline.value.find(i => i.pId === markers.value[idx].id).color = '#d81e06'
     boxItem.value = markers.value[idx].raw
-    lastPolyIdx.value = idx
   } else {
     // 节点
     const idxn = markers.value.findIndex(i => i.id === markerId)
+    markers.value.forEach(i => {
+      if(i.isHidden) {
+        i.iconPath = '/static/polyline.png'
+      } else {
+        i.iconPath = '/static/location.png'
+      }
+    })
     tab.value = 1
-    if (lastNodeIdx.value !== -1 && lastPolyIdx.value !== -1) {
-      markers.value[lastPolyIdx.value].iconPath = '/static/polyline.png'
-      markers.value[lastNodeIdx.value].iconPath = '/static/location.png'
-    }
     polyline.value.forEach(element => {
       element.color = '#8268de'
     })
     markers.value[idxn].iconPath = '/static/location-a.png'
     boxItem.value = markers.value[idxn].raw
-    lastNodeIdx.value = idxn
   }
   showBox.value = true
 }
@@ -313,17 +348,12 @@ const clickPolyline = (e) => {
   console.log('🚀:>> ', e)
 }
 
-const regionchange = (e) => {
-  console.log('🚀:>> ', e)
-}
-
 </script>
 
 <template>
   <view class="collect-map-page">
     <map :latitude="latitude" :longitude="longitude" :markers="markers" :polyline="polyline" :scale="scale"
-      :show-location="true" @tap="clickMap" @polylinetap="clickPolyline" @markertap="clickMarker"
-      @regionchange="regionchange">
+      :show-location="true" @tap="clickMap" @polylinetap="clickPolyline" @markertap="clickMarker">
       <view class="header-con">
         <view class="con" @click="clickOpenPopup">
           <image class="icon-img" src="/static/list.png"></image>
@@ -336,7 +366,7 @@ const regionchange = (e) => {
       </view>
 
       <view class="control-con">
-        <view class="local">
+        <view class="local" @click="clickLocal">
           <image class="local-img" src="/static/local.png"></image>
         </view>
       </view>
@@ -349,25 +379,16 @@ const regionchange = (e) => {
     <wd-popup v-model="show" position="left" safe-area-inset-bottom custom-style="width: 80%" @close="close">
       <view class="tab-con">
         <wd-tabs v-model="tab" @change="handleTabChange" auto-line-width>
-          <wd-tab title="段落">
-            <view class="main-content">
-              <scroll-view scroll-y class="scroll-y">
-                <view class="list-con">
-                  <BaseInfoCard v-for="i in polyline" :key="i.id" :item="i.raw" :tab="tab" @del="delItem" />
-                </view>
-              </scroll-view>
-            </view>
-          </wd-tab>
-          <wd-tab title="节点">
-            <view class="main-content">
-              <scroll-view scroll-y class="scroll-y">
-                <view class="list-con">
-                  <BaseInfoCard v-for="i in markers" :key="i.id" :item="i.raw" :tab="tab" @del="delItem" />
-                </view>
-              </scroll-view>
-            </view>
-          </wd-tab>
+          <wd-tab title="段落"></wd-tab>
+          <wd-tab title="节点"></wd-tab>
         </wd-tabs>
+      </view>
+      <view class="main-content">
+        <scroll-view scroll-y class="scroll-y">
+          <view class="list-con">
+            <BaseInfoCard v-for="i in list" :key="i.id" :item="i.raw" :tab="tab" @del="delItem" />
+          </view>
+        </scroll-view>
       </view>
 
       <view class="footer">
@@ -472,16 +493,16 @@ const regionchange = (e) => {
   }
 
   .main-content {
-    height: calc(100vh - 30rpx - env(safe-area-inset-top));
+    height: calc(100vh - 80px - 42px);
     z-index: 99;
 
-
     .scroll-y {
-      height: calc(100vh - 30rpx - env(safe-area-inset-bottom));
+      height: calc(100vh - 80px);
     }
 
     .list-con {
-      padding-bottom: calc(env(safe-area-inset-bottom) + 80rpx);
+      padding-top: 42px;
+      // padding-bottom: calc(env(safe-area-inset-bottom) + 80rpx);
     }
   }
 

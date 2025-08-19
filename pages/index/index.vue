@@ -101,7 +101,7 @@ const clickDelete = async (i) => {
           <template #title>
             <view class="title-con">
               <view style="width: 90%;">{{ i.projectName }}</view>
-              <view class="status-tip" :style="{ background: i.publishStatusCode === 'published' ? '#4D80F0' : '#fa4350' }">{{ i.publishStatusName }}</view>
+              <view class="status-tip" :style="{ background: i.publishStatusCode === 'published' ? '#4D80F0' : '#fa4350' }">{{ i.publishStatusCode === 'published' ? '已发布' : '未发布' }}</view>
             </view>
           </template>
           <view class="content">
@@ -159,6 +159,7 @@ const clickDelete = async (i) => {
         align-items: center;
 
         .status-tip {
+          min-width: 74rpx;
           padding: 6rpx 8rpx;
           border-radius: 4rpx;
           font-size: 24rpx;

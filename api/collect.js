@@ -44,3 +44,9 @@ export const getNodeDetailApi = (id) => http.get(`/op/projectStationLineNodeInfo
 
 // 新增段落
 export const addSectionApi = (data) => http.post(`/op/project/station/line/collection/line/section`, data)
+
+// 更新段落
+export const updateSectionApi = (data) => http.put(`/op/project/station/line/collection/line/section`, data)
+
+// 计算距离
+export const getDistanceApi = (id1, id2) => http.get(`/op/project/station/line/collection/line/section/distance/${id1}/${id2}`)

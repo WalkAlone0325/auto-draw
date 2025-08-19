@@ -99,7 +99,6 @@ const handleSubmit = async () => {
         uni.navigateBack({
           delta: 1,
           success: () => {
-            console.log('🚀:>> ', 777)
             uni.$emit('refresh')
           }
         })
@@ -119,7 +118,6 @@ const handleSubmit = async () => {
         uni.navigateBack({
           delta: 1,
           success: () => {
-            console.log('🚀:>> ', 8888)
             uni.$emit('refresh')
           }
         })
@@ -136,7 +134,8 @@ const getDetail = async (id) => {
   if (res.code === 200) {
     model.value = {
       ...res.data,
-      nodePlace: res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude
+      nodePlace: res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude,
+      projectStationLineNodeId: isCopy.value ? '' : res.data.projectStationLineNodeId
     }
   }
 }
@@ -156,8 +155,10 @@ onShow(() => {
 })
 
 const info = ref({})
+const isCopy = ref(false)
 onLoad((param) => {
   param.value = param
+  isCopy.value = param.copy === 'copy'
   info.value = uni.getStorageSync('info')
   getType('1', 'poleColumns')
   getType('3', 'nodeColumns')
@@ -168,6 +169,7 @@ onLoad((param) => {
 
   if (param.projectStationLineNodeId) {
     getDetail(param.projectStationLineNodeId)
+    isCopy.value && getCode(param.projectStationLineId)
   } else {
     getCode(param.projectStationLineId)
   }
@@ -249,7 +251,7 @@ onLoad((param) => {
     padding-bottom: constant(safe-area-inset-bottom);
     padding-bottom: env(safe-area-inset-bottom);
     background: #fff;
-    z-index: 999;
+    // z-index: 999;
   }
 
   :deep(.custom-btn) {

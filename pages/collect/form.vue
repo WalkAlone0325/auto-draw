@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { getTypeApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getNodeDetailApi, addSectionApi, getNodeListApi, getSectionCodeApi } from '@/api'
+import { getTypeApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getNodeDetailApi, addSectionApi, getNodeListApi, getSectionCodeApi, getDistanceApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 
 const model = ref({
@@ -109,7 +109,6 @@ const getCode = async (code) => {
   const res = await getCodeApi(code)
   if (res.code === 200) {
     model.value.nodeCode = code + 'node' + res.data
-    console.log('🚀:>> ', model.value.nodeCode)
   }
 }
 
@@ -137,9 +136,9 @@ const selectNode = (key) => {
 const loading = ref(false)
 const form = ref()
 const curId = ref('')
+const distanceLoading = ref(false)
 
 const handleSubmit = async () => {
-  console.log('🚀:>> ', param.value, 77)
   loading.value = true
   const { valid } = await form.value.validate()
   if (valid) {
@@ -197,6 +196,17 @@ const handleSubmit = async () => {
       loading.value = false
     }
   }
+  loading.value = false
+}
+
+// 计算距离
+const getDistance = async () => {
+  distanceLoading.value = true
+  const res = await getDistanceApi(model.value.endStationLineNodeId, model.value.nodeCode)
+  if (res.code === 200) {
+    model.value.sectionDistance = res.data
+  }
+  distanceLoading.value = false
 }
 
 // 获取详情
@@ -212,7 +222,6 @@ const getDetail = async (id) => {
 
 onShow(() => {
   uni.$on('local', (data) => {
-    console.log('🚀:>> ', data)
     if (data.key === 'nodePlace') {
       model.value.nodePlace = data.latitude + ',' + data.longitude
       model.value.nodePlaceLongitude = data.longitude
@@ -224,7 +233,6 @@ onShow(() => {
     }
   })
   uni.$on('selectNode', (data) => {
-    console.log('🚀:>> ', data)
     model.value.endStationLineNodeId = data.projectStationLineNodeId
     model.value.endStationLineNodeName = data.nodeCode
   })
@@ -321,7 +329,14 @@ onLoad((param) => {
           <wd-input prop="sectionMaterialsCount" v-model="model.sectionMaterialsCount" label="段落数量"
             placeholder="请输入段落数量" type="number" label-width="80px" />
           <wd-input prop="sectionDistance" v-model="model.sectionDistance" label="段落距离" placeholder="请输入段落距离"
-            type="number" label-width="80px" />
+            type="number" label-width="80px" center>
+            <!-- <template #suffix>
+              readonly
+              <view style="display: flex; align-items: center;">
+                <wd-button icon="keyboard-collapse" :loading="distanceLoading" @click="getDistance" size="small">计算</wd-button>
+              </view>
+            </template> -->
+          </wd-input>
         </wd-cell-group>
       </wd-form>
     </view>
@@ -359,7 +374,7 @@ onLoad((param) => {
     padding-bottom: constant(safe-area-inset-bottom);
     padding-bottom: env(safe-area-inset-bottom);
     background: #fff;
-    z-index: 999;
+    z-index: 2;
   }
 
   :deep(.custom-btn) {

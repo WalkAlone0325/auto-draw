@@ -26,7 +26,8 @@ const edit = (item) => {
     0: '/pages/collect/stage-form', // 段落
     1: '/pages/collect/node-form' // 节点
   }
-  const url = MAP[tab] + '?id=' + item.projectStationLineSectionId + '&projectStationLineId=' + item.projectStationLineId + '&projectStationLineNodeId=' + item.projectStationLineNodeId
+  const queryStr = '?id=' + item.projectStationLineSectionId + '&projectStationLineId=' + item.projectStationLineId + '&projectStationLineNodeId=' + item.projectStationLineNodeId
+  const url = MAP[tab] + queryStr
   uni.navigateTo({
     url
   })
@@ -34,17 +35,36 @@ const edit = (item) => {
 }
 
 const copy = (item) => {
-  emit('copy', item)
+  const { tab } = props
+  const MAP = {
+    0: '/pages/collect/stage-form', // 段落
+    1: '/pages/collect/node-form' // 节点
+  }
+  const queryStr = '?copy=copy' + '&id=' + item.projectStationLineSectionId + '&projectStationLineId=' + item.projectStationLineId + '&projectStationLineNodeId=' + item.projectStationLineNodeId
+  const url = MAP[tab] + queryStr
+  uni.navigateTo({
+    url
+  })
+  emit('copy', item, 'copy')
 }
 
 const select = (item) => {
   emit('select', item)
 }
+
+const itemStyle = (i) => {
+  return {
+    width: i.row ? '50%': '100%',
+    display: 'inline-flex',
+    justifyContent: i.row === 2 ? 'flex-end' : 'flex-start',
+    flexWrap: 'wrap'
+  }
+}
 </script>
 
 <template>
-  <view class="info-card" v-if="!item.isHidden" @click="select(item)">
-    <view class="info-item" v-for="i in item.infos" :key="i.label">
+  <view class="info-card" @click="select(item)">
+    <view class="info-item" v-for="i in item.infos" :key="i.label" :style="itemStyle(i)">
       <view class="info-label">{{ i.label }}：</view>
       <view class="info-value">{{ i.value }}</view>
     </view>
@@ -68,11 +88,16 @@ const select = (item) => {
   border-bottom: 1rpx solid #e5e5e5;
 
   .info-item {
-    width: 100%;
     display: flex;
+
+    // width: 50%;
+    // display: inline-flex;
     align-items: center;
-    justify-content: space-between;
     margin-bottom: 4rpx;
+
+    // &:nth-child(2n) {
+    //   justify-content: flex-end;
+    // }
 
     .info-label {
       font-size: 28rpx;
@@ -81,7 +106,7 @@ const select = (item) => {
 
     .info-value {
       font-size: 28rpx;
-      color: #333;
+      color: #000;
     }
   }
 
