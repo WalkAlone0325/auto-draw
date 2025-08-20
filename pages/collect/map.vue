@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { getParagraphListApi, getNodeListApi, deleteSectionApi, deleteNodeApi } from '@/api'
+import { getParagraphListApi, getNodeListApi, deleteSectionApi, deleteNodeApi, publishApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 
 const scale = ref(18)
@@ -242,6 +242,7 @@ const getNodeList = async () => {
       }
     }))
     markers.value = [...nodeMarkers, ...markers.value]
+    clickMarker({detail: { markerId: nodeMarkers[0].id }})
     nTotal.value = res.total
   } else {
     initMap()
@@ -348,6 +349,31 @@ const clickPolyline = (e) => {
   console.log('🚀:>> ', e)
 }
 
+const publishLoading = ref(false)
+const handlePublish = async () => {
+  uni.showModal({
+    title: '提示',
+    content: '确定要发布吗？',
+    success: async (res) => {
+      if (res.confirm) {
+        publishLoading.value = true
+        const res = await publishApi({
+          projectId: param.value.projectId,
+          publishStatusCode: 'published',
+        })
+        if (res.code === 200) {
+          uni.showToast({
+            title: '发布成功',
+            icon: 'success'
+          })
+        }
+        show.value = false
+        publishLoading.value = false
+      }
+    }
+  })
+}
+
 </script>
 
 <template>
@@ -373,6 +399,13 @@ const clickPolyline = (e) => {
 
       <view class="box" v-show="showBox">
         <BaseInfoCard :item="boxItem" :tab="tab" @del="delItem" />
+      </view>
+
+      <view class="btn-box">
+        <view class="btn-con">
+          <wd-button custom-class="custom-btn" type="primary" :loading="publishLoading" :round="0"
+            @click="handlePublish">发布</wd-button>
+        </view>
       </view>
     </map>
 
@@ -457,7 +490,7 @@ const clickPolyline = (e) => {
       border-radius: 8rpx;
       box-shadow: 0 0 10rpx rgba(0, 0, 0, 0.3);
       position: absolute;
-      bottom: 520rpx;
+      bottom: 530rpx;
       left: 60rpx;
       box-sizing: border-box;
 
@@ -473,13 +506,30 @@ const clickPolyline = (e) => {
 
   .box {
     position: absolute;
-    bottom: 100rpx;
+    bottom: 180rpx;
     left: 30rpx;
     right: 30rpx;
     background-color: #fff;
     border-radius: 8rpx;
     box-shadow: 0 0 10rpx rgba(0, 0, 0, 0.3);
     box-sizing: border-box;
+  }
+
+  .btn-box {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 10rpx);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    .btn-con {
+      padding-top: 20rpx;
+      margin-right: 30rpx;
+    }
   }
 
   // popup

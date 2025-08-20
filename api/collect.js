@@ -50,3 +50,6 @@ export const updateSectionApi = (data) => http.put(`/op/project/station/line/col
 
 // 计算距离
 export const getDistanceApi = (id1, id2) => http.get(`/op/project/station/line/collection/line/section/distance/${id1}/${id2}`)
+
+// 发布
+export const publishApi = (data) => http.put(`/op/projectStationLineInfo`, data)
