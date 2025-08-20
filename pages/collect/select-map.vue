@@ -42,9 +42,8 @@ const clickSubmit = () => {
 }
 
 const regionchange = (e) => {
-  const {causedBy, type} = e.detail
-  if(causedBy === 'drag' && type === 'end') {
-    const {centerLocation} = e.detail
+  const {type, centerLocation} = e.detail
+  if(type === 'end') {
     markers.value[0].latitude = centerLocation.latitude
     markers.value[0].longitude = centerLocation.longitude
   }

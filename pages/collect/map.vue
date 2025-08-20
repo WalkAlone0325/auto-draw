@@ -67,7 +67,7 @@ const tab = ref(0)
 // 点击打开弹窗
 const clickOpenPopup = () => {
   list.value = []
-  if(tab.value == 0) {
+  if (tab.value == 0) {
     list.value = polyline.value
   } else {
     list.value = markers.value.filter(i => !i.isHidden)
@@ -122,9 +122,25 @@ const query = ref({
   // pageSize: 10,
   order: 'asc'
 })
+
+// 计算数量
+const calcCount = (data, curItem, type) => {
+  let len
+  if (type) {
+    const res = data.map(i => `${(Number(i.startNodePlaceLatitude) + Number(i.endNodePlaceLatitude)) / 2},${(Number(i.startNodePlaceLongitude) + Number(i.endNodePlaceLongitude)) / 2}`)
+    const cur = `${(Number(curItem.startNodePlaceLatitude) + Number(curItem.endNodePlaceLatitude)) / 2},${(Number(curItem.startNodePlaceLongitude) + Number(curItem.endNodePlaceLongitude)) / 2}`
+    len = res.filter(i => i === cur).length
+  } else {
+    const res = data.map(i => `${i.nodePlaceLatitude},${i.nodePlaceLongitude}`)
+    const cur = `${curItem.nodePlaceLatitude},${curItem.nodePlaceLongitude}`
+    len = res.filter(i => i == cur).length
+  }
+  console.log('🚀:>> ', type, len)
+  return len
+}
+
 // 获取段落
 const getParagraphList = async () => {
-  uni.showLoading({ title: '加载中', mask: true })
   const res = await getParagraphListApi({
     ...query.value,
     projectStationLineId: param.value.projectStationLineId,
@@ -158,9 +174,18 @@ const getParagraphList = async () => {
         longitude: (Number(i.startNodePlaceLongitude) + Number(i.endNodePlaceLongitude)) / 2,
         label: {
           content: calcCount(data, i, 'isHidden') || 1,
-          color: '#000',
-          fontSize: 16,
-          position: 'bottom'
+          content: 1,
+          borderWidth: 1,
+          borderColor: '#4D80F0',
+          color: '#4D80F0',
+          bgColor: '#fff',
+          borderRadius: 100,
+          padding: 3,
+          width: 16,
+          height: 16,
+          textAlign: 'center',
+          fontSize: 14,
+          fontWeight: 'bold'
         }
       })
       return {
@@ -186,26 +211,10 @@ const getParagraphList = async () => {
     markers.value = [...arr, ...markers.value]
     pTotal.value = res.total
   }
-  uni.hideLoading()
 }
 
-// 计算数量
-const calcCount = (data, curItem, type) => {
-  let len
-  if (type) {
-    const res = data.map(i => `${(Number(i.startNodePlaceLatitude) + Number(i.endNodePlaceLatitude)) / 2},${(Number(i.startNodePlaceLongitude) + Number(i.endNodePlaceLongitude)) / 2}`)
-    const cur = `${(Number(curItem.startNodePlaceLatitude) + Number(curItem.endNodePlaceLatitude)) / 2},${(Number(curItem.startNodePlaceLongitude) + Number(curItem.endNodePlaceLongitude)) / 2}`
-    len = res.filter(i => i === cur).length
-  } else {
-    const res = data.map(i => `${i.nodePlaceLatitude},${i.nodePlaceLongitude}`)
-    const cur = `${curItem.nodePlaceLatitude},${curItem.nodePlaceLongitude}`
-    len = res.filter(i => i === cur).length
-  }
-  return len
-}
 // 获取节点
 const getNodeList = async () => {
-  uni.showLoading({ title: '加载中', mask: true })
   const res = await getNodeListApi({
     ...query.value,
     projectStationLineId: param.value.projectStationLineId,
@@ -236,18 +245,25 @@ const getNodeList = async () => {
       height: 24,
       label: {
         content: calcCount(data, i) || 1,
-        color: '#000',
-        fontSize: 16,
-        position: 'bottom'
+        content: 1,
+        borderWidth: 1,
+        borderColor: '#999',
+        bgColor: '#fff',
+        borderRadius: 0,
+        padding: 3,
+        width: 16,
+        height: 16,
+        textAlign: 'center',
+        fontSize: 14,
+        fontWeight: 'bold'
       }
     }))
     markers.value = [...nodeMarkers, ...markers.value]
-    clickMarker({detail: { markerId: nodeMarkers[0].id }})
+    clickMarker({ detail: { markerId: nodeMarkers[0].id } })
     nTotal.value = res.total
   } else {
     initMap()
   }
-  uni.hideLoading()
 }
 
 // 删除段落，节点
@@ -313,7 +329,7 @@ const clickMarker = (e) => {
   if (markerId > 9000000 && markers.value[idx].isHidden) {
     tab.value = 0
     markers.value.forEach(i => {
-      if(i.isHidden) {
+      if (i.isHidden) {
         i.iconPath = '/static/polyline.png'
       } else {
         i.iconPath = '/static/location.png'
@@ -329,7 +345,7 @@ const clickMarker = (e) => {
     // 节点
     const idxn = markers.value.findIndex(i => i.id === markerId)
     markers.value.forEach(i => {
-      if(i.isHidden) {
+      if (i.isHidden) {
         i.iconPath = '/static/polyline.png'
       } else {
         i.iconPath = '/static/location.png'
@@ -403,7 +419,7 @@ const handlePublish = async () => {
 
       <view class="btn-box">
         <view class="btn-con">
-          <wd-button custom-class="custom-btn" type="primary" :loading="publishLoading" :round="0"
+          <wd-button custom-class="custom-btn" type="primary" :loading="publishLoading" :round="false"
             @click="handlePublish">发布</wd-button>
         </view>
       </view>
