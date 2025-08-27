@@ -31,7 +31,6 @@ const clickLocal = () => {
 onLoad(() => {
   // initMap()
   uni.$on('refresh', async () => {
-    console.log('🚀:>> ', 111)
     show.value = false
     pTotal.value = 0
     polyline.value = []
@@ -69,10 +68,11 @@ const clickOpenPopup = () => {
   list.value = []
   if (tab.value == 0) {
     list.value = polyline.value
+    total.value = polyline.value.length
   } else {
     list.value = markers.value.filter(i => !i.isHidden)
+    total.value = markers.value.filter(i => !i.isHidden).length
   }
-  console.log('🚀:>> ', list.value)
   show.value = true
 }
 
@@ -117,6 +117,7 @@ const loading = ref(false)
 const pTotal = ref(0)
 const nTotal = ref(0)
 const list = ref([])
+const total = ref(0)
 const query = ref({
   // pageNum: 1,
   // pageSize: 10,
@@ -135,7 +136,6 @@ const calcCount = (data, curItem, type) => {
     const cur = `${curItem.nodePlaceLatitude},${curItem.nodePlaceLongitude}`
     len = res.filter(i => i == cur).length
   }
-  console.log('🚀:>> ', type, len)
   return len
 }
 
@@ -173,19 +173,10 @@ const getParagraphList = async () => {
         latitude: (Number(i.startNodePlaceLatitude) + Number(i.endNodePlaceLatitude)) / 2,
         longitude: (Number(i.startNodePlaceLongitude) + Number(i.endNodePlaceLongitude)) / 2,
         label: {
-          content: calcCount(data, i, 'isHidden') || 1,
-          content: 1,
-          borderWidth: 1,
-          borderColor: '#4D80F0',
-          color: '#4D80F0',
-          bgColor: '#fff',
-          borderRadius: 100,
-          padding: 3,
-          width: 16,
-          height: 16,
-          textAlign: 'center',
-          fontSize: 14,
-          fontWeight: 'bold'
+          content: String(calcCount(data, i, 'isHidden') || 1),
+          color: '#006400',
+          fontSize: 16,
+          textAlign: 'center'
         }
       })
       return {
@@ -237,25 +228,17 @@ const getNodeList = async () => {
         ]
       },
       id: i.projectStationLineNodeId,
-      latitude: i.nodePlaceLatitude,
-      longitude: i.nodePlaceLongitude,
+      latitude: Number(i.nodePlaceLatitude),
+      longitude: Number(i.nodePlaceLongitude),
       // title: `${idx + 1}`,
       iconPath: '/static/location.png',
       width: 24,
       height: 24,
       label: {
-        content: calcCount(data, i) || 1,
-        content: 1,
-        borderWidth: 1,
-        borderColor: '#999',
-        bgColor: '#fff',
-        borderRadius: 0,
-        padding: 3,
-        width: 16,
-        height: 16,
-        textAlign: 'center',
+        content: String(calcCount(data, i) || 1),
+        color: '#000',
         fontSize: 14,
-        fontWeight: 'bold'
+        textAlign: 'center'
       }
     }))
     markers.value = [...nodeMarkers, ...markers.value]
@@ -268,7 +251,6 @@ const getNodeList = async () => {
 
 // 删除段落，节点
 const delItem = async (item) => {
-  console.log('🚀:>> ', item)
   uni.showModal({
     title: '提示',
     content: '确定删除吗？',
@@ -319,12 +301,13 @@ const clickMap = (e) => {
 }
 
 const showBox = ref(false)
-const boxItem = ref({})
+const allBox = ref([])
 
 const clickMarker = (e) => {
   const { markerId } = e.detail
   const idx = markers.value.findIndex(i => i.id === markerId)
 
+  const all = markers.value.filter(i => i.latitude === markers.value[idx].latitude && i.longitude === markers.value[idx].longitude)
   // 段落
   if (markerId > 9000000 && markers.value[idx].isHidden) {
     tab.value = 0
@@ -340,7 +323,7 @@ const clickMarker = (e) => {
       element.color = '#8268de'
     })
     polyline.value.find(i => i.pId === markers.value[idx].id).color = '#d81e06'
-    boxItem.value = markers.value[idx].raw
+    allBox.value = all
   } else {
     // 节点
     const idxn = markers.value.findIndex(i => i.id === markerId)
@@ -356,13 +339,12 @@ const clickMarker = (e) => {
       element.color = '#8268de'
     })
     markers.value[idxn].iconPath = '/static/location-a.png'
-    boxItem.value = markers.value[idxn].raw
+    allBox.value = all
   }
   showBox.value = true
 }
 
 const clickPolyline = (e) => {
-  console.log('🚀:>> ', e)
 }
 
 const publishLoading = ref(false)
@@ -413,8 +395,12 @@ const handlePublish = async () => {
         </view>
       </view>
 
-      <view class="box" v-show="showBox">
-        <BaseInfoCard :item="boxItem" :tab="tab" @del="delItem" />
+      <view class="box-con" v-show="showBox">
+        <swiper>
+          <swiper-item class="box" v-for="i in allBox" :key="i.id">
+            <BaseInfoCard class="box-item" :item="i.raw" :tab="tab" @del="delItem" />
+          </swiper-item>
+        </swiper>
       </view>
 
       <view class="btn-box">
@@ -437,6 +423,8 @@ const handlePublish = async () => {
           <view class="list-con">
             <BaseInfoCard v-for="i in list" :key="i.id" :item="i.raw" :tab="tab" @del="delItem" />
           </view>
+
+          <wd-status-tip image="content" tip="暂无内容" v-if="total === 0" />
         </scroll-view>
       </view>
 
@@ -452,6 +440,11 @@ const handlePublish = async () => {
 </template>
 
 <style lang="scss" scoped>
+::v-deep .info-card {
+  width: 92% !important;
+}
+
+
 .collect-map-page {
   width: 100%;
   height: 100vh;
@@ -488,8 +481,8 @@ const handlePublish = async () => {
     }
 
     .icon-img {
-      width: 40rpx;
-      height: 40rpx;
+      width: 50rpx;
+      height: 50rpx;
     }
 
     .icon-title {
@@ -520,12 +513,16 @@ const handlePublish = async () => {
     }
   }
 
-  .box {
+  .box-con {
     position: absolute;
-    bottom: 180rpx;
-    left: 30rpx;
-    right: 30rpx;
-    background-color: #fff;
+    bottom: calc(140rpx + env(safe-area-inset-bottom));
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+
+  .box {
+    margin: 0 30rpx;
     border-radius: 8rpx;
     box-shadow: 0 0 10rpx rgba(0, 0, 0, 0.3);
     box-sizing: border-box;
@@ -580,10 +577,10 @@ const handlePublish = async () => {
     left: 0;
     right: 0;
     z-index: 999;
+    padding-bottom: env(safe-area-inset-bottom);
 
     .container {
       padding: 20rpx;
-      padding-bottom: env(safe-area-inset-bottom);
     }
   }
 }

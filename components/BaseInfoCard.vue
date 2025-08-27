@@ -114,14 +114,13 @@ const itemStyle = (i) => {
     display: flex;
     justify-content: space-between;
     margin-top: 10rpx;
-    padding: 0 30rpx;
 
     .btn {
       font-size: 24rpx;
-      color: #666;
+      color: #333;
       padding: 10rpx 20rpx;
       border-radius: 4rpx;
-      border: 1rpx solid #666;
+      border: 1rpx solid #333;
     }
   }
 }
