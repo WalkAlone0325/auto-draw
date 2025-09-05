@@ -105,7 +105,7 @@ onLoad((param) => {
       box-shadow: 0 0 10rpx rgba(0, 0, 0, 0.3);
       position: absolute;
       bottom: 520rpx;
-      left: 60rpx;
+      right: 60rpx;
       box-sizing: border-box;
 
       &:active {

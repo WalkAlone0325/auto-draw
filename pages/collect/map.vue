@@ -564,7 +564,7 @@ const update = () => {
       box-shadow: 0 0 10rpx rgba(0, 0, 0, 0.3);
       position: absolute;
       bottom: 530rpx;
-      left: 60rpx;
+      right: 60rpx;
       box-sizing: border-box;
 
       &:active {
