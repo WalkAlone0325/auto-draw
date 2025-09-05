@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { getSectionDetailApi, getDistanceApi, addSectionApi, updateSectionApi, getNodeListApi, getSectionCodeApi, getAttrApi, getTypeApi, getSpecApi } from '@/api'
+import { getSectionDetailApi, getDistanceApi, addSectionApi, updateSectionApi, getNodeListApi, getSectionCodeApi, getAttrApi, getTypeApi, getSpecApi, createSectionDefaultApi, copySectionDefaultApi } from '@/api'
 
 const loading = ref(false)
 const form = ref(null)
@@ -78,7 +78,10 @@ const handleSubmit = async () => {
           }, 1000)
         }
       } else {
-        const res = await addSectionApi(model.value)
+        const res = await addSectionApi({
+          ...model.value,
+          projectStationLineId: curId.value
+        })
         if (res.code === 200) {
           uni.showToast({
             title: '新增成功',
@@ -178,11 +181,33 @@ const getDistance = async () => {
   distanceLoading.value = false
 }
 
+// 创建段落默认值
+const getCreateDefault = async (id) => {
+  const res = await createSectionDefaultApi(id)
+  if (res.code === 200) {
+    model.value = {
+      ...res.data,
+      nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
+    }
+  }
+}
+
+// 复制节点默认值
+const getCopyDefault = async (id) => {
+  const res = await copySectionDefaultApi(id)
+  if (res.code === 200) {
+    model.value = {
+      ...res.data,
+      nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
+    }
+  }
+}
+
 const info = ref({})
 const isCopy = ref(false)
+const curId = ref('')
 onLoad(async (options) => {
-  console.log('🚀:>> ', options)
-  model.value.projectStationLineId = options.projectStationLineId
+  curId.value = model.value.projectStationLineId = options.projectStationLineId
   // 复制
   isCopy.value = options.copy === 'copy'
 
@@ -194,10 +219,15 @@ onLoad(async (options) => {
   getSpec('141', 'sectionSpecColumns', 'section')
   getAttr('141', 'sectionAttrColumns', 'section')
   if (options.id) {
-    await getDetail(options.id)
-    isCopy.value && getSectionCode(options.projectStationLineId)
+    if (!isCopy.value) {
+      await getDetail(options.id)
+    } else {
+      getCopyDefault(options.id)
+    }
+    // getSectionCode(options.projectStationLineId)
   } else {
-    getSectionCode(options.projectStationLineId)
+    // getSectionCode(options.projectStationLineId)
+    getCreateDefault(options.projectStationLineId)
   }
 })
 
@@ -291,9 +321,7 @@ onLoad(async (options) => {
     left: 0;
     right: 0;
     padding: 30rpx 20rpx 0;
-    padding-bottom: 0;
-    padding-bottom: constant(safe-area-inset-bottom);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 30rpx);
     background: #fff;
     // z-index: 999;
   }

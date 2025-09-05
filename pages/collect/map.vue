@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { getParagraphListApi, getNodeListApi, deleteSectionApi, deleteNodeApi, publishApi } from '@/api'
+import { getParagraphListApi, getNodeListApi, deleteSectionApi, deleteNodeApi, publishBatchApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 
 const scale = ref(18)
@@ -27,6 +27,8 @@ const clickLocal = () => {
   longitude.value = ''
   initMap()
 }
+
+const map = ref(null)
 
 onLoad(() => {
   // initMap()
@@ -106,6 +108,14 @@ const clickAdd = (tab) => {
   }
 }
 
+// 批量创建段落
+const clickAddMulti = () => {
+  const queryStr = `projectStationLineId=${param.value.projectStationLineId}&projectStationId=${param.value.projectStationId}&projectId=${param.value.projectId}`
+  uni.navigateTo({
+    url: '/pages/collect/multi-stage-form?' + queryStr
+  })
+}
+
 const clickCollect = () => {
   const queryStr = `projectStationLineId=${param.value.projectStationLineId}&projectStationId=${param.value.projectStationId}&projectId=${param.value.projectId}&projectName=${param.value.projectName}&show=${nTotal.value}`
   uni.navigateTo({
@@ -166,18 +176,14 @@ const getParagraphList = async () => {
           ]
         },
         id: idx + 9000001,
-        iconPath: '/static/polyline.png',
-        width: 24,
-        height: 24,
+        count: calcCount(data, i, 'isHidden') || 1,
+        // iconPath: '/static/polyline.png',
+        iconPath: `/static/map/san${calcCount(data, i, 'isHidden') || 1}.png`,
+        width: 31,
+        height: 27,
         anchor: { x: 0.5, y: 0.5 },
         latitude: (Number(i.startNodePlaceLatitude) + Number(i.endNodePlaceLatitude)) / 2,
-        longitude: (Number(i.startNodePlaceLongitude) + Number(i.endNodePlaceLongitude)) / 2,
-        label: {
-          content: String(calcCount(data, i, 'isHidden') || 1),
-          color: '#006400',
-          fontSize: 16,
-          textAlign: 'center'
-        }
+        longitude: (Number(i.startNodePlaceLongitude) + Number(i.endNodePlaceLongitude)) / 2
       })
       return {
         id: i.projectStationLineSectionId,
@@ -230,16 +236,11 @@ const getNodeList = async () => {
       id: i.projectStationLineNodeId,
       latitude: Number(i.nodePlaceLatitude),
       longitude: Number(i.nodePlaceLongitude),
-      // title: `${idx + 1}`,
-      iconPath: '/static/location.png',
-      width: 24,
-      height: 24,
-      label: {
-        content: String(calcCount(data, i) || 1),
-        color: '#000',
-        fontSize: 14,
-        textAlign: 'center'
-      }
+      count: calcCount(data, i) || 1,
+      // iconPath: '/static/location.png',
+      iconPath: `/static/map/loc${calcCount(data, i) || 1}.png`,
+      width: 17,
+      height: 26
     }))
     markers.value = [...nodeMarkers, ...markers.value]
     clickMarker({ detail: { markerId: nodeMarkers[0].id } })
@@ -302,46 +303,64 @@ const clickMap = (e) => {
 
 const showBox = ref(false)
 const allBox = ref([])
+const currentSwiper = ref(0)
+
+const changeSwiper = (e) => {
+  currentSwiper.value = e.detail.current
+}
 
 const clickMarker = (e) => {
+  currentSwiper.value = 0
   const { markerId } = e.detail
+  console.log('🚀:>> markerId: ', markerId)
   const idx = markers.value.findIndex(i => i.id === markerId)
-
-  const all = markers.value.filter(i => i.latitude === markers.value[idx].latitude && i.longitude === markers.value[idx].longitude)
-  // 段落
-  if (markerId > 9000000 && markers.value[idx].isHidden) {
-    tab.value = 0
-    markers.value.forEach(i => {
-      if (i.isHidden) {
-        i.iconPath = '/static/polyline.png'
-      } else {
-        i.iconPath = '/static/location.png'
-      }
-    })
-    markers.value[idx].iconPath = '/static/polyline-a.png'
-    polyline.value.forEach(element => {
-      element.color = '#8268de'
-    })
-    polyline.value.find(i => i.pId === markers.value[idx].id).color = '#d81e06'
-    allBox.value = all
-  } else {
-    // 节点
-    const idxn = markers.value.findIndex(i => i.id === markerId)
-    markers.value.forEach(i => {
-      if (i.isHidden) {
-        i.iconPath = '/static/polyline.png'
-      } else {
-        i.iconPath = '/static/location.png'
-      }
-    })
-    tab.value = 1
-    polyline.value.forEach(element => {
-      element.color = '#8268de'
-    })
-    markers.value[idxn].iconPath = '/static/location-a.png'
-    allBox.value = all
-  }
   showBox.value = true
+
+  // 段落
+  if(markerId > 9000000 && markers.value[idx].isHidden) {
+    const all = markers.value.filter(i => i.isHidden && i.latitude === markers.value[idx].latitude && i.longitude === markers.value[idx].longitude)
+    console.log('🚀:>> all: ', all)
+    allBox.value = all
+    tab.value = 0
+    // 点
+    markers.value.forEach((i, index) => {
+      if (i.isHidden) {
+        i.iconPath = `/static/map/san${i.count}.png`
+        if (index === idx) {
+          markers.value[index].iconPath = `/static/map/a-san${markers.value[index].count}.png`
+        }
+      } else {
+        i.iconPath = `/static/map/loc${i.count}.png`
+      }
+    })
+
+    // 线
+    polyline.value.forEach((i, index) => {
+      if (i.pId === markerId) {
+        i.color = '#d81e06'
+      } else {
+        i.color = '#8268de'
+      }
+    })
+  } else {
+    tab.value = 1
+    const all = markers.value.filter(i => !i.isHidden && i.latitude === markers.value[idx].latitude && i.longitude === markers.value[idx].longitude)
+    allBox.value = all
+    markers.value.forEach((i, index) => {
+      if (!i.isHidden) {
+        i.iconPath = `/static/map/loc${i.count}.png`
+        if (index === idx) {
+          markers.value[index].iconPath = `/static/map/a-loc${markers.value[index].count}.png`
+        }
+      } else {
+        i.iconPath = `/static/map/san${i.count}.png`
+      }
+    })
+    // 线
+    polyline.value.forEach(i => {
+      i.color = '#8268de'
+    })
+  }
 }
 
 const clickPolyline = (e) => {
@@ -349,17 +368,23 @@ const clickPolyline = (e) => {
 
 const publishLoading = ref(false)
 const handlePublish = async () => {
-  uni.showModal({
-    title: '提示',
-    content: '确定要发布吗？',
+  const options = {
+    title: '发布提示',
+    editable: true,
+    placeholderText: '请输入版本备注信息',
     success: async (res) => {
       if (res.confirm) {
+        if (!res.content) {
+          uni.showToast({ title: '请输入版本备注', icon: 'none', complete: () => uni.showModal(options) })
+          return
+        }
         publishLoading.value = true
-        const res = await publishApi({
-          projectId: param.value.projectId,
+        const resD = await publishBatchApi({
+          projectStationLineId: param.value.projectStationLineId,
           publishStatusCode: 'published',
+          versionsRemark: res.content.trim()
         })
-        if (res.code === 200) {
+        if (resD.code === 200) {
           uni.showToast({
             title: '发布成功',
             icon: 'success'
@@ -367,7 +392,35 @@ const handlePublish = async () => {
         }
         show.value = false
         publishLoading.value = false
+        setTimeout(() => {
+          uni.navigateBack()
+        }, 1000)
       }
+    }
+  }
+  uni.showModal(options)
+}
+
+const showCanvas = ref(false)
+const update = () => {
+  showCanvas.value = true
+  uni.canvasToTempFilePath({
+    canvasId: 'myCanvas',
+    fileType: 'png',
+    quality: 1, //图片质量
+    width: '100vw',
+    height: '100vh',
+    success: (res) => {
+      console.log('🚀:>> res: ', res.tempFilePath)
+      uni.saveImageToPhotosAlbum({
+        filePath: res.tempFilePath,
+        success(res) {
+          uni.showToast({
+            title: '已保存到相册',
+            duration: 2000
+          })
+        }
+      })
     }
   })
 }
@@ -376,7 +429,7 @@ const handlePublish = async () => {
 
 <template>
   <view class="collect-map-page">
-    <map :latitude="latitude" :longitude="longitude" :markers="markers" :polyline="polyline" :scale="scale"
+    <map ref="map" :latitude="latitude" :longitude="longitude" :markers="markers" :polyline="polyline" :scale="scale"
       :show-location="true" @tap="clickMap" @polylinetap="clickPolyline" @markertap="clickMarker">
       <view class="header-con">
         <view class="con" @click="clickOpenPopup">
@@ -396,7 +449,7 @@ const handlePublish = async () => {
       </view>
 
       <view class="box-con" v-show="showBox">
-        <swiper>
+        <swiper @change="changeSwiper" :current="currentSwiper" :style="{ height: tab == 1 ? '300rpx' : '340rpx' }">
           <swiper-item class="box" v-for="i in allBox" :key="i.id">
             <BaseInfoCard class="box-item" :item="i.raw" :tab="tab" @del="delItem" />
           </swiper-item>
@@ -405,6 +458,9 @@ const handlePublish = async () => {
 
       <view class="btn-box">
         <view class="btn-con">
+          <!-- <wd-button custom-class="custom-btn" type="primary" :loading="publishLoading" :round="false"
+            @click="update">上传截图</wd-button>
+          <view style="width: 30rpx;" /> -->
           <wd-button custom-class="custom-btn" type="primary" :loading="publishLoading" :round="false"
             @click="handlePublish">发布</wd-button>
         </view>
@@ -429,9 +485,13 @@ const handlePublish = async () => {
       </view>
 
       <view class="footer">
-        <view class="container">
+        <view class="container" :style="tab == 0 ? { display: 'flex', justifyContent: 'center' } : {}">
           <wd-button custom-class="custom-btn" type="primary" :loading="loading" block :round="false"
             @click="clickAdd(tab)">新建{{ tab === 0 ? '段落' : '节点' }}</wd-button>
+
+          <view style="width: 30rpx;" v-if="tab === 0" />
+          <wd-button custom-class="custom-btn" v-if="tab === 0" type="primary" :loading="loading" block :round="false"
+            @click="clickAddMulti">批量选择段落</wd-button>
         </view>
       </view>
     </wd-popup>
@@ -440,8 +500,12 @@ const handlePublish = async () => {
 </template>
 
 <style lang="scss" scoped>
-::v-deep .info-card {
-  width: 92% !important;
+.map-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
 }
 
 
@@ -524,8 +588,11 @@ const handlePublish = async () => {
   .box {
     margin: 0 30rpx;
     border-radius: 8rpx;
-    box-shadow: 0 0 10rpx rgba(0, 0, 0, 0.3);
     box-sizing: border-box;
+
+    :deep(.info-card) {
+      max-width: calc(100% - 60rpx);
+    }
   }
 
   .btn-box {
@@ -540,6 +607,7 @@ const handlePublish = async () => {
     align-items: center;
 
     .btn-con {
+      display: flex;
       padding-top: 20rpx;
       margin-right: 30rpx;
     }

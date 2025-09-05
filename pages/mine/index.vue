@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from 'vue'
+import { logoutApi } from '@/api'
+import { onShow } from '@dcloudio/uni-app'
 
 const cells = ref([
   { title: '权限查看', icon: '/static/mine/icon1.png' },
@@ -8,6 +10,13 @@ const cells = ref([
   { title: '隐私协议', icon: '/static/mine/icon4.png' },
   { title: '设置中心', icon: '/static/mine/icon5.png' }
 ])
+
+const user = ref({})
+const token = ref('')
+onShow(() => {
+  user.value = uni.getStorageSync('user')
+  token.value = uni.getStorageSync('token')
+})
 
 const clickInfo = () => {
   uni.navigateTo({
@@ -21,6 +30,33 @@ const clickCell = (i) => {
     icon: 'none'
   })
 }
+
+const logout = () => {
+  uni.showModal({
+    title: '提示',
+    content: '确定退出登录吗？',
+    success: async (res) => {
+      if (res.confirm) {
+        const res = await logoutApi()
+        if (res.code === 200) {
+          uni.showToast({
+            title: '退出登录成功',
+            icon: 'success'
+          })
+          uni.removeStorageSync('token')
+          uni.removeStorageSync('user')
+          uni.reLaunch({
+            // url: '/pages/index/index'
+            url: '/pages/login/index'
+          })
+        }
+      }
+    },
+    fail: (err) => {
+      console.log(err, 'err')
+    }
+  })
+}
 </script>
 
 
@@ -28,10 +64,10 @@ const clickCell = (i) => {
   <view class="mine-page">
     <view class="mine-header" @click="clickInfo">
       <view class="header-left">
-        <image class="avatar" src="/static/logo.png" mode="widthFix"></image>
+        <image class="avatar" :src="user.avatar"></image>
         <view class="info">
-          <view class="name">用户名</view>
-          <view class="sex">性别：男</view>
+          <view class="name">{{ user.nickName }}</view>
+          <view class="sex">性别：{{ user.sex == 0 ? '男' : '女' }}</view>
         </view>
       </view>
       <view class="header-right">
@@ -68,6 +104,10 @@ const clickCell = (i) => {
         </wd-cell>
       </wd-cell-group>
     </view>
+
+    <view class="mine__footer" v-if="token">
+      <wd-button type="primary" block @click="logout">退出登录</wd-button>
+    </view>
   </view>
 </template>
 
@@ -88,6 +128,7 @@ const clickCell = (i) => {
       margin-left: 20rpx;
 
       .avatar {
+        box-sizing: border-box;
         width: 120rpx;
         height: 120rpx;
         border-radius: 50%;
@@ -118,6 +159,14 @@ const clickCell = (i) => {
     margin-top: -2rpx;
     overflow: hidden;
     margin-right: 20rpx;
+  }
+
+  .mine__footer {
+    position: fixed;
+    bottom: 50rpx;
+    left: 40rpx;
+    right: 40rpx;
+    padding: 10rpx 40rpx;
   }
 }
 </style>

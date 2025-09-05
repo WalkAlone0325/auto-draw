@@ -52,9 +52,10 @@ const select = (item) => {
   emit('select', item)
 }
 
-const itemStyle = (i) => {
+const itemStyle = (i, idx) => {
+  let width = i.row ? ((idx + 1) % 2 === 0 ? '44%' : '56%') : '100%'
   return {
-    width: i.row ? '50%': '100%',
+    width,
     display: 'inline-flex',
     justifyContent: i.row === 2 ? 'flex-end' : 'flex-start',
     flexWrap: 'wrap'
@@ -64,7 +65,7 @@ const itemStyle = (i) => {
 
 <template>
   <view class="info-card" @click="select(item)">
-    <view class="info-item" v-for="i in item.infos" :key="i.label" :style="itemStyle(i)">
+    <view class="info-item" v-for="(i, idx) in item.infos" :key="i.label" :style="itemStyle(i, idx)">
       <view class="info-label">{{ i.label }}：</view>
       <view class="info-value">{{ i.value }}</view>
     </view>

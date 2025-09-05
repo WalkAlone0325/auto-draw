@@ -51,5 +51,23 @@ export const updateSectionApi = (data) => http.put(`/op/project/station/line/col
 // 计算距离
 export const getDistanceApi = (id1, id2) => http.get(`/op/project/station/line/collection/line/section/distance/${id1}/${id2}`)
 
+// 创建节点默认值
+export const createNodeDefaultApi = (projectStationLineId) => http.get(`/op/project/station/line/collection/nodeInfo/add/default/${projectStationLineId}`)
+
+// 创建段落默认值
+export const createSectionDefaultApi = (projectStationLineId) => http.get(`/op/project/station/line/collection/sectionInfo/add/default/${projectStationLineId}`)
+
+// 复制节点默认值
+export const copyNodeDefaultApi = (projectStationLineNodeId) => http.get(`/op/project/station/line/collection/nodeInfo/copy/default/${projectStationLineNodeId}`)
+
+// 复制段落默认值
+export const copySectionDefaultApi = (projectStationLineSectionId) => http.get(`/op/project/station/line/collection/sectionInfo/copy/default/${projectStationLineSectionId}`)
+
+// 段落计算 通过经纬度计算距离
+export const getJwDistanceApi = (beginLongitude, beginLatitude, endLongitude, endLatitude) => http.get(`/op/project/station/line/collection/line/section/distance/${beginLongitude}/${beginLatitude}/${endLongitude}/${endLatitude}`)
+
+// 批量复制段落
+export const copySectionBatchApi = (data) => http.post(`/op/project/station/line/collection/line/section/copy/bat`, data)
+
 // 发布
-export const publishApi = (data) => http.put(`/op/projectStationLineInfo`, data)
+export const publishBatchApi = (data) => http.put(`/op/project/station/line/collection/publish/status/base`, data)

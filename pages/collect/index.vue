@@ -101,7 +101,7 @@ const handleTabChange = ({ index }) => {
     <BaseLoading :loading="loading" v-if="loading && !list.length" />
 
     <view class="list-con" v-else>
-      <view class="list-item" v-for="i in list" :key="i.projectId">
+      <view class="list-item" v-for="i in list" :key="i.projectId"  @click="clickDetail(i)">
         <wd-card>
           <template #title>
             <view class="title-con">

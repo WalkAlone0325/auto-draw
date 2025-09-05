@@ -10,20 +10,20 @@ const toast = useToast()
 
 const form = ref(null)
 const model = ref({
-  userName: '',
+  nickName: '',
   avatar: '',
   fileList: []
 })
 const rules = ref({
   avatar: [{ required: true, message: '请上传头像' }],
-  userName: [{ required: true, message: '请填写姓名' }]
+  nickName: [{ required: true, message: '请填写姓名' }]
 })
 
 const handleSubmit = () => { }
 
 onLoad(() => {
   const info = uni.getStorageSync('user')
-  model.value.userName = info.userName
+  model.value.nickName = info.nickName
   model.value.fileList = [{ url: info.avatar }]
 })
 
@@ -80,7 +80,7 @@ const customUpload = (file, formData, options) => {
               <wd-upload v-model:file-list="model.fileList" :limit="1" :upload-method="customUpload"></wd-upload>
             </view>
           </wd-cell>
-          <wd-input label="姓名" label-width="100px" prop="userName" readonly clearable v-model="model.userName"
+          <wd-input label="姓名" label-width="100px" prop="nickName" readonly clearable v-model="model.nickName"
             placeholder="请输入姓名" />
         </wd-cell-group>
         <view class="footer">

@@ -96,7 +96,7 @@ const clickDelete = async (i) => {
     <BaseLoading :loading="loading" v-if="loading && !list.length" />
 
     <view class="list-con" v-else>
-      <view class="list-item" v-for="i in list" :key="i.projectId">
+      <view class="list-item" v-for="i in list" :key="i.projectId" @click="clickDetail(i)">
         <wd-card>
           <template #title>
             <view class="title-con">
@@ -131,7 +131,9 @@ const clickDelete = async (i) => {
                 <view class="value">{{ i.projectOwnershipCompanyName }}</view>
               </view>
               <view style="display: flex; align-items: center;">
-                <wd-button type="text" custom-class="delete-btn" @click="clickDelete(i)">删除</wd-button>
+                <view @click.stop="clickDelete(i)">
+                  <wd-button type="text" custom-class="delete-btn">删除</wd-button>
+                </view>
                 <wd-button type="text" @click="clickDetail(i)">查看</wd-button>
               </view>
             </view>
@@ -141,7 +143,7 @@ const clickDelete = async (i) => {
       <wd-loadmore :state="state" @reload="loadMore" :loading-props="{ size: 20 }" />
     </view>
 
-    <wd-fab :expandable="false" @click="clickDetail"></wd-fab>
+    <wd-fab custom-class="fab-con" draggable :expandable="false" @click="clickDetail"></wd-fab>
   </view>
 </template>
 
@@ -203,8 +205,13 @@ const clickDelete = async (i) => {
     }
 
     :deep(.fab-con .wd-fab__trigger) {
-      width: 70rpx !important;
-      height: 70rpx !important;
+      width: 50rpx !important;
+      height: 50rpx !important;
+    }
+
+    .fab-con {
+      width: 50rpx !important;
+      height: 50rpx !important;
     }
   }
 }

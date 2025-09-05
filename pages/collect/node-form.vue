@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { getTypeApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getNodeDetailApi, updateNodeApi } from '@/api'
+import { getTypeApi, getDictApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getNodeDetailApi, updateNodeApi, createNodeDefaultApi, copyNodeDefaultApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 
 const model = ref({
@@ -42,8 +42,18 @@ const param = ref({
 const dist = ref({
   poleColumns: [],
   nodeColumns: [],
-  nameColumns: []
+  nameColumns: [],
+  attrTypeColumns: []
 })
+
+const getDict = async (code, key) => {
+  const res = await getDictApi(code)
+  if (res.code === 200) {
+    dist.value[key] = res.data
+    console.log(dist.value[key])
+  }
+}
+
 const speaColumns = ref([])
 const attrColumns = ref([])
 const getType = async (type, key) => {
@@ -154,6 +164,28 @@ onShow(() => {
   })
 })
 
+// 创建节点默认值
+const getCreateDefault = async (id) => {
+  const res = await createNodeDefaultApi(id)
+  if (res.code === 200) {
+    model.value = {
+      ...res.data,
+      nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
+    }
+  }
+}
+
+// 复制节点默认值
+const getCopyDefault = async (id) => {
+  const res = await copyNodeDefaultApi(id)
+  if (res.code === 200) {
+    model.value = {
+      ...res.data,
+      nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
+    }
+  }
+}
+
 const info = ref({})
 const isCopy = ref(false)
 onLoad((param) => {
@@ -165,13 +197,19 @@ onLoad((param) => {
   getType('12', 'nameColumns')
   getSpec('15', 'specColumns')
   getAttr('15', 'attrColumns')
+  getDict('reference_substance_type', 'attrTypeColumns')
   curId.value = param.projectStationLineId
 
   if (param.projectStationLineNodeId) {
-    getDetail(param.projectStationLineNodeId)
-    isCopy.value && getCode(param.projectStationLineId)
+    if (!isCopy.value) {
+      getDetail(param.projectStationLineNodeId)
+    } else {
+      getCopyDefault(param.projectStationLineNodeId)
+    }
+    // getCode(param.projectStationLineId)
   } else {
-    getCode(param.projectStationLineId)
+    // getCode(param.projectStationLineId)
+    getCreateDefault(param.projectStationLineId)
   }
 })
 </script>
@@ -209,7 +247,7 @@ onLoad((param) => {
             <wd-input prop="nodeReferenceSubstance" v-model="model.nodeReferenceSubstance" label="节点参照物坐标"
               placeholder="请选择参照物节点坐标" type="text" label-width="120px" readonly clearable />
           </view>
-          <wd-picker :columns="attrColumns" label-key="text" label-width="120px" label="节点参照物类型"
+          <wd-picker :columns="dist.attrTypeColumns" label-key="dictLabel" value-key="dictValue" label-width="120px" label="节点参照物类型"
             placeholder="请选择节点参照物类型" v-model="model.nodeReferenceSubstanceTypeCode"
             prop="nodeReferenceSubstanceTypeCode" />
           <wd-input prop="nodeReferenceSubstanceName" v-model="model.nodeReferenceSubstanceName" label="节点参照物名称"
@@ -247,9 +285,7 @@ onLoad((param) => {
     left: 0;
     right: 0;
     padding: 30rpx 20rpx 0;
-    padding-bottom: 0;
-    padding-bottom: constant(safe-area-inset-bottom);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 30rpx);
     background: #fff;
     // z-index: 999;
   }

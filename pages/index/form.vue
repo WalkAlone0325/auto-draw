@@ -94,7 +94,7 @@ const getArea = async (parentId, key, index) => {
   }
 }
 
-const handleProjectCodeBlur = async ({value: val}) => {
+const handleProjectCodeBlur = async ({ value: val }) => {
   if (!val) return
   const res = await checkProjectCodeApi({ projectCode: val, projectId: model.value.projectId })
   if (res.code === 200) {
@@ -158,17 +158,21 @@ const handleSubmit = async (type) => {
       if (model.value.projectId) {
         if (type === 'published') {
           data.publishStatusCode = 'published' // 已发布
-        }
-        const res = await updateProjectApi(data)
-        if (res.code === 200) {
-          uni.showToast({
-            title: type === 'published' ? '发布成功' : '更新成功',
-            icon: 'success'
-          })
-          setTimeout(() => {
-            loading.value = false
-            uni.navigateBack()
-          }, 1000)
+          handlePublish(data)
+        } else {
+          // 未发布 更新
+          const res = await updateProjectApi(data)
+          if (res.code === 200) {
+            uni.showToast({
+              title: '更新成功',
+              icon: 'success'
+            })
+            setTimeout(() => {
+              loading.value = false
+              uni.navigateBack()
+            }, 1000)
+          }
+          loading.value = false
         }
       } else {
         const res = await addProjectApi(data)
@@ -182,9 +186,44 @@ const handleSubmit = async (type) => {
             uni.navigateBack()
           }, 1000)
         }
+        loading.value = false
       }
     }
   })
+}
+
+const handlePublish = (data) => {
+  const options = {
+    title: '发布提示',
+    editable: true,
+    placeholderText: '请输入版本备注信息',
+    success: async (resData) => {
+      if (resData.confirm) {
+        if (!resData.content) {
+          uni.showToast({ title: '请输入版本备注', icon: 'none', complete: () => uni.showModal(options) })
+          return
+        }
+        // 发布
+        const res = await updateProjectApi({
+          ...data,
+          publishStatusCode: 'published',
+          versionsRemark: resData.content.trim()
+        })
+        if (res.code === 200) {
+          uni.showToast({
+            title: '发布成功',
+            icon: 'success'
+          })
+          setTimeout(() => {
+            loading.value = false
+            uni.navigateBack()
+          }, 1000)
+        }
+        loading.value = false
+      }
+    }
+  }
+  uni.showModal(options)
 }
 
 // 站点详情
@@ -249,12 +288,12 @@ onLoad(async (options) => {
             placeholder="请选择归属区县" v-model="model.countyCode" prop="countyCode" />
           <wd-input label="备注" label-width="80px" prop="remark" clearable v-model="model.remark" placeholder="请输入备注" />
 
-          <wd-picker label="发布状态" :disabled="true" :columns="statusColumns" label-key="dictLabel" value-key="dictValue" label-width="80px"
-            placeholder="请选择发布状态" v-model="model.publishStatusCode" prop="publishStatusCode" />
+          <wd-picker label="发布状态" :disabled="true" :columns="statusColumns" label-key="dictLabel" value-key="dictValue"
+            label-width="80px" placeholder="请选择发布状态" v-model="model.publishStatusCode" prop="publishStatusCode" />
           <wd-input label="项目版本" :disabled="true" prop="projectVersions" v-model="model.projectVersions"
             placeholder="请输入项目版本" type="text" label-width="80px" />
-          <wd-datetime-picker label="版本时间" :disabled="true" label-width="80px" placeholder="请选择版本时间" prop="projectVersionsCreateTime"
-            v-model="model.projectVersionsCreateTime" />
+          <wd-datetime-picker label="版本时间" :disabled="true" label-width="80px" placeholder="请选择版本时间"
+            prop="projectVersionsCreateTime" v-model="model.projectVersionsCreateTime" />
         </wd-cell-group>
 
         <wd-cell-group custom-class="group" title="站点信息" border center>
@@ -323,9 +362,7 @@ onLoad(async (options) => {
     left: 0;
     right: 0;
     padding: 30rpx 20rpx 0;
-    padding-bottom: 0;
-    padding-bottom: constant(safe-area-inset-bottom);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 30rpx);
     background: #fff;
     z-index: 999;
   }

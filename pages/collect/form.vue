@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { getTypeApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getNodeDetailApi, addSectionApi, getNodeListApi, getSectionCodeApi, getDistanceApi } from '@/api'
+import { getTypeApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getNodeDetailApi, addSectionApi, getNodeListApi, getSectionCodeApi, getDistanceApi, createNodeDefaultApi, createSectionDefaultApi, getJwDistanceApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 
 const model = ref({
@@ -201,8 +201,15 @@ const handleSubmit = async () => {
 
 // 计算距离
 const getDistance = async () => {
+  if (!model.value.nodePlaceLongitude || !model.value.nodePlaceLatitude || !selectObj.value.endStationLineNodeLongitude || !selectObj.value.endStationLineNodeLatitude) {
+    uni.showToast({
+      title: '请选择坐标',
+      icon: 'none'
+    })
+    return
+  }
   distanceLoading.value = true
-  const res = await getDistanceApi(model.value.endStationLineNodeId, model.value.nodeCode)
+  const res = await getJwDistanceApi(model.value.nodePlaceLongitude, model.value.nodePlaceLatitude, selectObj.value.endStationLineNodeLongitude, selectObj.value.endStationLineNodeLatitude)
   if (res.code === 200) {
     model.value.sectionDistance = res.data
   }
@@ -214,11 +221,38 @@ const getDetail = async (id) => {
   const res = await getNodeDetailApi(id)
   if (res.code === 200) {
     model.value = {
+      ...model.value,
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude
     }
   }
 }
+
+// 创建节点默认值
+const getCreateNodeDefault = async (id) => {
+  const res = await createNodeDefaultApi(id)
+  if (res.code === 200) {
+    model.value = {
+      ...model.value,
+      ...res.data,
+      nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
+    }
+  }
+}
+
+// 创建段落默认值
+const getCreateSectionDefault = async (id) => {
+  const res = await createSectionDefaultApi(id)
+  if (res.code === 200) {
+    model.value = {
+      ...model.value,
+      ...res.data,
+      nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
+    }
+  }
+}
+
+const selectObj = ref({})
 
 onShow(() => {
   uni.$on('local', (data) => {
@@ -235,6 +269,8 @@ onShow(() => {
   uni.$on('selectNode', (data) => {
     model.value.endStationLineNodeId = data.projectStationLineNodeId
     model.value.endStationLineNodeName = data.nodeCode
+    selectObj.value.endStationLineNodeLongitude = data.nodePlaceLongitude
+    selectObj.value.endStationLineNodeLatitude = data.nodePlaceLatitude
   })
 })
 
@@ -257,13 +293,15 @@ onLoad((param) => {
     getType('133', 'sectionNameColumns')
     getSpec('141', 'sectionSpecColumns', 'section')
     getAttr('141', 'sectionAttrColumns', 'section')
-    getSectionCode(param.projectStationLineId)
+    // getSectionCode(param.projectStationLineId)
+    getCreateSectionDefault(param.projectStationLineId)
   }
 
   if (param.projectStationLineNodeId) {
     getDetail(param.projectStationLineNodeId)
   } else {
-    getCode(param.projectStationLineId)
+    // getCode(param.projectStationLineId)
+    getCreateNodeDefault(param.projectStationLineId)
   }
 })
 </script>
@@ -330,12 +368,11 @@ onLoad((param) => {
             placeholder="请输入段落数量" type="number" label-width="80px" />
           <wd-input prop="sectionDistance" v-model="model.sectionDistance" label="段落距离" placeholder="请输入段落距离"
             type="number" label-width="80px" center>
-            <!-- <template #suffix>
-              readonly
+            <template #suffix>
               <view style="display: flex; align-items: center;">
                 <wd-button icon="keyboard-collapse" :loading="distanceLoading" @click="getDistance" size="small">计算</wd-button>
               </view>
-            </template> -->
+            </template>
           </wd-input>
         </wd-cell-group>
       </wd-form>
@@ -370,9 +407,7 @@ onLoad((param) => {
     left: 0;
     right: 0;
     padding: 30rpx 20rpx 0;
-    padding-bottom: 0;
-    padding-bottom: constant(safe-area-inset-bottom);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 30rpx);
     background: #fff;
     z-index: 2;
   }

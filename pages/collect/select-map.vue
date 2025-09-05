@@ -78,7 +78,7 @@ onLoad((param) => {
           </view>
         </view>
         <view class="btn-con">
-          <wd-button type="primary" block :round="0" @click="clickSubmit">确定</wd-button>
+          <wd-button type="primary" block :round="false" @click="clickSubmit">确定</wd-button>
         </view>
       </view>
     </map>

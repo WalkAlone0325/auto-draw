@@ -38,6 +38,18 @@
       }
     },
     {
+      "path": "pages/collect/multi-stage-form",
+      "style": {
+        "navigationBarTitleText": "创建批量段落"
+      }
+    },
+    {
+      "path": "pages/collect/section-select",
+      "style": {
+        "navigationBarTitleText": "选择段落"
+      }
+    },
+    {
       "path": "pages/collect/node-form",
       "style": {
         "navigationBarTitleText": "编辑节点"
@@ -78,7 +90,9 @@
     {
       "path": "pages/login/index",
       "style": {
-        "navigationBarTitleText": "登录"
+        "navigationBarTitleText": "登录",
+        "navigationStyle": "custom",
+        "disableScroll": true
       }
     }
   ],
@@ -87,7 +101,8 @@
     "borderStyle": "black",
     "selectedColor": "#333333",
     "backgroundColor": "#ffffff",
-    "list": [{
+    "list": [
+      {
         "pagePath": "pages/index/index",
         "text": "项目",
         "iconPath": "static/tab/project.png",
