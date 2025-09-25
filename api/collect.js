@@ -71,3 +71,6 @@ export const copySectionBatchApi = (data) => http.post(`/op/project/station/line
 
 // 发布
 export const publishBatchApi = (data) => http.put(`/op/project/station/line/collection/publish/status/base`, data)
+
+// 节点参照物类型
+export const getAttrNodeApi = (code) => http.get(`/system/dict/data/type/${code}`)

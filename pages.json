@@ -28,7 +28,8 @@
     {
       "path": "pages/collect/map",
       "style": {
-        "navigationBarTitleText": "数据采集"
+        "navigationBarTitleText": "数据采集",
+        "disableScroll": false
       }
     },
     {
@@ -93,6 +94,12 @@
         "navigationBarTitleText": "登录",
         "navigationStyle": "custom",
         "disableScroll": true
+      }
+    },
+    {
+      "path": "pages/mine/agreement",
+      "style": {
+        "navigationBarTitleText": "协议"
       }
     }
   ],

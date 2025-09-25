@@ -29,3 +29,6 @@ export const getDictApi = (params) => http.get(`/system/dict/data/type/${params}
 
 // 省市区
 export const getAreaApi = (params) => http.get(`/system/dict/region/list/parent/${params}`)
+
+// 部门区域关联列表
+export const getDeptRegionRelApi = (params) => http.get(`/op/deptRegionRel/deptregion/all/list`, { params })

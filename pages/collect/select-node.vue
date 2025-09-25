@@ -22,11 +22,11 @@ const getNodeList = async (projectStationLineId) => {
       ...i,
         infos: [
           { label: '节点编号', value: i.nodeCode },
-          { label: '节点属性', value: i.nodeClassesName },
+          { label: '节点属性', value: i.nodeAttributeName },
           { label: '杆路类型', value: i.nodeTypeName },
           { label: '节点类型', value: i.polePathTypeName },
           { label: '节点名称', value: i.nodeNameName },
-          { label: '节点规格', value: i.nodeMaterialsCount }
+          { label: '节点规格', value: i.nodeSpecificationName }
         ]
     }))
     list.value = nodeMarkers

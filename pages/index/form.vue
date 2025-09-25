@@ -1,7 +1,7 @@
 <script setup>
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { getProjectDetailApi, checkProjectCodeApi, getProjectStationApi, getDeptApi, getDictApi, getAreaApi, addProjectApi, updateProjectApi } from '@/api'
+import { getProjectDetailApi, checkProjectCodeApi, getProjectStationApi, getDeptApi, getDeptRegionRelApi, getDictApi, getAreaApi, addProjectApi, updateProjectApi } from '@/api'
 
 const loading = ref(false)
 const form = ref(null)
@@ -55,7 +55,7 @@ const getStatus = async () => {
 const provinceColumns = ref([])
 const cityColumns = ref([])
 const countyColumns = ref([])
-const getArea = async (parentId, key, index) => {
+const getArea = async (parentId, key, index, isInit) => {
   const res = await getAreaApi(parentId)
   if (res.code === 200) {
     const site = siteForms.value[index]
@@ -66,7 +66,7 @@ const getArea = async (parentId, key, index) => {
           site.provinceCode = ''
           site.cityCode = ''
           site.countyCode = ''
-        } else {
+        } else if (!isInit) {
           model.value.provinceCode = ''
           model.value.cityCode = ''
           model.value.countyCode = ''
@@ -77,7 +77,7 @@ const getArea = async (parentId, key, index) => {
         if (site) {
           site.cityCode = ''
           site.countyCode = ''
-        } else {
+        } else if (!isInit) {
           model.value.cityCode = ''
           model.value.countyCode = ''
         }
@@ -86,7 +86,7 @@ const getArea = async (parentId, key, index) => {
         countyColumns.value = res.data
         if (site) {
           site.countyCode = ''
-        } else {
+        } else if (!isInit) {
           model.value.countyCode = ''
         }
         break
@@ -108,9 +108,30 @@ const handleProjectCodeBlur = async ({ value: val }) => {
   }
 }
 
+const getDeptRegionRel = async (deptId) => {
+  const res = await getDeptRegionRelApi({deptId})
+  if (res.code === 200) {
+    if(res.data.provinceRegionCode) {
+      await getArea(res.data.provinceRegionCode, 'cityColumns')
+      model.value.provinceCode = res.data.provinceRegionCode
+      console.log('🚀:>> ', model.value.provinceCode)
+    }
+    if(res.data.cityRegionCode) {
+      await getArea(res.data.cityRegionCode, 'countyColumns')
+      model.value.cityCode = res.data.cityRegionCode
+      console.log('🚀:>> ', model.value.cityCode)
+    }
+    if(res.data.countyRegionCode) {
+      model.value.countyCode = res.data.countyRegionCode
+      console.log('🚀:>> ', model.value.countyCode)
+    }
+  }
+}
+
 const handleCompanyConfirm = ({ value, selectedItems }) => {
   model.value.projectOwnershipCompanyCode = value
   model.value.projectOwnershipCompanyName = selectedItems.text
+  getDeptRegionRel(value)
 }
 
 // 添加站点
@@ -126,6 +147,12 @@ const handleAddSite = () => {
     countyCode: model.value.countyCode,
     remark: ''
   })
+  nextTick(() => {
+    uni.pageScrollTo({
+      selector: `#site-${siteForms.value.length - 1}`,
+      duration: 300
+    })
+  }, 0)
 }
 
 // 删除站点
@@ -237,10 +264,12 @@ const getSiteDetail = async (projectId) => {
 // 详情
 const getDetail = async (id) => {
   const res = await getProjectDetailApi(id)
-  if (res.code === 200) {
+  if (res.code == 200) {
     if (res.data.cityCode) {
-      await getArea(res.data.cityCode, 'cityColumns')
-      await getArea(res.data.countyCode, 'countyColumns')
+      await getArea(res.data.provinceCode, 'cityColumns', null, 'init')
+    }
+    if (res.data.cityCode) {
+      await getArea(res.data.cityCode, 'countyColumns', null, 'init')
     }
     model.value = res.data
   }
@@ -253,6 +282,10 @@ onLoad(async (options) => {
   if (options.id) {
     await getDetail(options.id)
     await getSiteDetail(options.id)
+  } else {
+    const info = uni.getStorageSync('user')
+    model.value.projectOwnershipCompanyCode = info.companyDeptId
+    await getDeptRegionRel(model.value.projectOwnershipCompanyCode)
   }
 })
 
@@ -322,6 +355,7 @@ onLoad(async (options) => {
           <wd-picker :columns="countyColumns" label-key="name" value-key="code" label-width="80px" label="归属区县"
             placeholder="请选择归属区县" v-model="item.countyCode" prop="countyCode" />
           <wd-input label="备注" label-width="80px" prop="remark" clearable v-model="item.remark" placeholder="请输入备注" />
+          <view :id="`site-${index}`"></view>
         </view>
       </wd-form>
     </view>
@@ -364,7 +398,7 @@ onLoad(async (options) => {
     padding: 30rpx 20rpx 0;
     padding-bottom: calc(env(safe-area-inset-bottom) + 30rpx);
     background: #fff;
-    z-index: 999;
+    z-index: 2;
   }
 
   :deep(.custom-btn) {

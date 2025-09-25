@@ -3,11 +3,14 @@ import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getParagraphListApi } from '@/api/collect'
 
+const loading = ref(false)
+
 const vals = ref([])
 // 段落列表
 const list = ref([])
 
 const getList = async (projectStationLineId) => {
+  loading.value = true
   const res = await getParagraphListApi({
     projectStationLineId,
   })
@@ -29,6 +32,7 @@ const getList = async (projectStationLineId) => {
     width: 3,
     points: [{ latitude: i.startNodePlaceLatitude, longitude: i.startNodePlaceLongitude }, { latitude: i.endNodePlaceLatitude, longitude: i.endNodePlaceLongitude }]
   }))
+  loading.value = false
 }
 
 onLoad((param) => {
@@ -66,7 +70,8 @@ const handleSubmit = () => {
 
 <template>
   <view class="section-select-page">
-    <view class="list">
+    <BaseLoading :loading="loading" v-if="loading && !list.length" />
+    <view class="list" v-else>
       <wd-checkbox-group v-model="vals">
         <view class="item-check" v-for="i in list" :key="i.id" @click="clickItem(i)">
           <wd-checkbox :modelValue="i.id" :true-value="i.id" false-value="" />

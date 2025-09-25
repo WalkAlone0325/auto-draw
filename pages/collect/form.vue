@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { getTypeApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getNodeDetailApi, addSectionApi, getNodeListApi, getSectionCodeApi, getDistanceApi, createNodeDefaultApi, createSectionDefaultApi, getJwDistanceApi } from '@/api'
+import { getTypeApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getAttrNodeApi, getNodeDetailApi, addSectionApi, getNodeListApi, getSectionCodeApi, getDistanceApi, createNodeDefaultApi, createSectionDefaultApi, getJwDistanceApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 
 const model = ref({
@@ -84,6 +84,13 @@ const getType = async (type, key) => {
     dist.value[key] = res.data
   }
 }
+const attrNodeColumns = ref([])
+const getAttrNode = async (code, key, type) => {
+  const res = await getAttrNodeApi(code)
+  if (res.code === 200) {
+    attrNodeColumns.value = res.data
+  }
+}
 const getSpec = async (code, key, type) => {
   const res = await getSpecApi(code)
   if (res.code === 200) {
@@ -148,6 +155,7 @@ const handleSubmit = async () => {
     })
     if (res.code === 200) {
       if (isShow.value) {
+        // const code = nodeList.value[nodeList.value.length - 1].projectStationLineNodeId
         let code
         const cRes = await getNodeListApi({ projectStationLineId: curId.value })
         if(cRes.code === 200) {
@@ -166,9 +174,7 @@ const handleSubmit = async () => {
           projectStationLineId: curId.value
         })
         if (res.code === 200) {
-          uni.showToast({
-            title: '新增成功'
-          })
+          uni.showToast({ title: '新增成功' })
           loading.value = false
           uni.navigateBack({
             delta: 1,
@@ -180,9 +186,7 @@ const handleSubmit = async () => {
           loading.value = false
         }
       } else {
-        uni.showToast({
-          title: '新增成功'
-        })
+        uni.showToast({ title: '新增成功' })
         loading.value = false
         uni.navigateBack({
           delta: 1,
@@ -285,6 +289,7 @@ onLoad((param) => {
   getType('12', 'nameColumns')
   getSpec('15', 'specColumns')
   getAttr('15', 'attrColumns')
+  getAttrNode('reference_substance_type', 'attrNodeColumns')
   curId.value = param.projectStationLineId
 
   if (isShow.value) {
@@ -303,6 +308,26 @@ onLoad((param) => {
     // getCode(param.projectStationLineId)
     getCreateNodeDefault(param.projectStationLineId)
   }
+})
+
+// 获取节点
+const lastNode = ref({})
+const nodeList = ref([])
+const getNodeList = async () => {
+  const res = await getNodeListApi({
+    projectStationLineId: curId.value,
+  })
+  if (res.code === 200 && res.rows.length > 0) {
+    nodeList.value = res.rows
+    lastNode.value = res.rows[res.rows.length - 1]
+    model.value.endStationLineNodeId = lastNode.value.projectStationLineNodeId
+    model.value.endStationLineNodeName = lastNode.value.nodeCode
+    selectObj.value.endStationLineNodeLongitude = lastNode.value.nodePlaceLongitude
+    selectObj.value.endStationLineNodeLatitude = lastNode.value.nodePlaceLatitude
+  }
+}
+onLoad(() => {
+  getNodeList()
 })
 </script>
 
@@ -339,7 +364,7 @@ onLoad((param) => {
             <wd-input prop="nodeReferenceSubstance" v-model="model.nodeReferenceSubstance" label="节点参照物坐标"
               placeholder="请选择参照物节点坐标" type="text" label-width="120px" readonly clearable />
           </view>
-          <wd-picker :columns="attrColumns" label-key="text" label-width="120px" label="节点参照物类型"
+          <wd-picker :columns="attrNodeColumns" label-key="dictLabel" value-key="dictValue" label-width="120px" label="节点参照物类型"
             placeholder="请选择节点参照物类型" v-model="model.nodeReferenceSubstanceTypeCode"
             prop="nodeReferenceSubstanceTypeCode" />
           <wd-input prop="nodeReferenceSubstanceName" v-model="model.nodeReferenceSubstanceName" label="节点参照物名称"
