@@ -4,11 +4,11 @@ import { logoutApi } from '@/api'
 import { onShow } from '@dcloudio/uni-app'
 
 const cells = ref([
-  { title: '权限查看', icon: '/static/mine/icon1.png' },
-  { title: '权限管理', icon: '/static/mine/icon2.png' },
+  // { title: '权限查看', icon: '/static/mine/icon1.png' },
+  // { title: '权限管理', icon: '/static/mine/icon2.png' },
   { title: '用户协议', icon: '/static/mine/icon3.png', url: '/pages/mine/agreement?title=用户协议' },
   { title: '隐私协议', icon: '/static/mine/icon4.png', url: '/pages/mine/agreement?title=隐私协议' },
-  { title: '设置中心', icon: '/static/mine/icon5.png' }
+  // { title: '设置中心', icon: '/static/mine/icon5.png' }
 ])
 
 const user = ref({})

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 
-const scale = ref(18)
+const scale = ref(20)
 const latitude = ref('')
 const longitude = ref('')
 const markers = ref([])
@@ -28,8 +28,38 @@ const initMap = () => {
     }
   })
 }
+
+const get = () => {
+  uni.startLocationUpdate({
+    type: 'gcj02',
+    success: () => {
+      uni.onLocationChange(function(res) {
+        console.log('🚀:>> ', res)
+        latitude.value = res.latitude
+        longitude.value = res.longitude
+        markers.value = [{
+          id: 1,
+          latitude: res.latitude,
+          longitude: res.longitude,
+          iconPath: '/static/now-local.png',
+          width: 30,
+          height: 30
+        }]
+        if(res.accuracy < 30) {
+          uni.stopLocationUpdate()
+          return
+        }
+      })
+    },
+    fail: (res) => {
+      console.log('🚀:>> ', res)
+    }
+  })
+}
+
 const clickLocal = () => {
-  initMap()
+  // initMap()
+  get()
 }
 
 const clickSubmit = () => {
@@ -42,8 +72,8 @@ const clickSubmit = () => {
 }
 
 const regionchange = (e) => {
-  const {type, centerLocation} = e.detail
-  if(type === 'end') {
+  const { type, centerLocation } = e.detail
+  if (type === 'end') {
     markers.value[0].latitude = centerLocation.latitude
     markers.value[0].longitude = centerLocation.longitude
   }
@@ -52,12 +82,14 @@ const regionchange = (e) => {
 onLoad((param) => {
   key.value = param.key
   initMap()
+  get()
 })
 </script>
 
 <template>
   <view class="select-map-page">
-    <map :latitude="latitude" :longitude="longitude" :markers="markers" :scale="scale" :show-location="true" @regionchange="regionchange">
+    <map :latitude="latitude" :longitude="longitude" :markers="markers" :scale="scale" :show-location="true"
+      @regionchange="regionchange">
       <view class="control-con">
         <view class="local" @click="clickLocal">
           <image class="local-img" src="/static/local.png"></image>
@@ -68,13 +100,13 @@ onLoad((param) => {
         <view class="local-item">
           <view class="local-item-con">
             <view class="local-item-title">纬度坐标</view>
-            <view class="local-item-desc">{{markers[0].latitude}}</view>
+            <view class="local-item-desc">{{ markers[0].latitude }}</view>
           </view>
         </view>
         <view class="local-item">
           <view class="local-item-con">
             <view class="local-item-title">经度坐标</view>
-            <view class="local-item-desc">{{markers[0].longitude}}</view>
+            <view class="local-item-desc">{{ markers[0].longitude }}</view>
           </view>
         </view>
         <view class="btn-con">
@@ -137,7 +169,7 @@ onLoad((param) => {
         padding-bottom: 10rpx;
 
         .local-item-title {
-        padding-bottom: 10rpx;
+          padding-bottom: 10rpx;
         }
 
         .local-item-desc {

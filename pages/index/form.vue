@@ -55,13 +55,19 @@ const getStatus = async () => {
 const provinceColumns = ref([])
 const cityColumns = ref([])
 const countyColumns = ref([])
-const getArea = async (parentId, key, index, isInit) => {
+const getArea = async (parentId, key, index, isInit, rowKey, provinceCode) => {
   const res = await getAreaApi(parentId)
   if (res.code === 200) {
     const site = siteForms.value[index]
     switch (key) {
       case 'provinceColumns':
-        provinceColumns.value = res.data
+        if (rowKey) {
+          row.value[index + '' + parentId] = {}
+          row.value[index + '' + parentId].cityColumns = []
+          row.value[index + '' + parentId].countyColumns = []
+        } else {
+          provinceColumns.value = res.data
+        }
         if (site) {
           site.provinceCode = ''
           site.cityCode = ''
@@ -73,7 +79,13 @@ const getArea = async (parentId, key, index, isInit) => {
         }
         break
       case 'cityColumns':
-        cityColumns.value = res.data
+        if (rowKey) {
+          row.value[index + '' + parentId] = {}
+          row.value[index + '' + parentId].cityColumns = res.data
+          row.value[index + '' + parentId].countyColumns = []
+        } else {
+          cityColumns.value = res.data
+        }
         if (site) {
           site.cityCode = ''
           site.countyCode = ''
@@ -83,12 +95,37 @@ const getArea = async (parentId, key, index, isInit) => {
         }
         break
       case 'countyColumns':
-        countyColumns.value = res.data
+        if (rowKey) {
+          row.value[index + '' + provinceCode] = row.value[index + '' + provinceCode] || {}
+          row.value[index + '' + provinceCode].countyColumns = res.data
+        } else {
+          countyColumns.value = res.data
+        }
         if (site) {
           site.countyCode = ''
         } else if (!isInit) {
           model.value.countyCode = ''
         }
+        break
+    }
+  }
+}
+
+const row = ref({})
+const getForArea = async (index, provinceCode, key, cityCode, isSelect) => {
+  const res = await getAreaApi(cityCode || provinceCode)
+  if (res.code === 200) {
+    const site = siteForms.value[index]
+    switch (key) {
+      case 'cityColumns':
+        row.value['cityColumns' + index] = res.data
+        if (isSelect) {
+          site.countyCode = ''
+          row.value['countyColumns' + index] = []
+        }
+        break
+      case 'countyColumns':
+        row.value['countyColumns' + index] = res.data
         break
     }
   }
@@ -114,16 +151,13 @@ const getDeptRegionRel = async (deptId) => {
     if(res.data.provinceRegionCode) {
       await getArea(res.data.provinceRegionCode, 'cityColumns')
       model.value.provinceCode = res.data.provinceRegionCode
-      console.log('🚀:>> ', model.value.provinceCode)
     }
     if(res.data.cityRegionCode) {
       await getArea(res.data.cityRegionCode, 'countyColumns')
       model.value.cityCode = res.data.cityRegionCode
-      console.log('🚀:>> ', model.value.cityCode)
     }
     if(res.data.countyRegionCode) {
       model.value.countyCode = res.data.countyRegionCode
-      console.log('🚀:>> ', model.value.countyCode)
     }
   }
 }
@@ -137,7 +171,9 @@ const handleCompanyConfirm = ({ value, selectedItems }) => {
 // 添加站点
 const siteForms = ref([])
 const projectStationId = ref(1)
-const handleAddSite = () => {
+const handleAddSite = async () => {
+  await getForArea(siteForms.value.length, model.value.provinceCode, 'cityColumns')
+  await getForArea(siteForms.value.length, model.value.provinceCode, 'countyColumns', model.value.cityCode)
   siteForms.value.push({
     projectStationId: projectStationId.value++,
     projectStationCode: '',
@@ -147,6 +183,7 @@ const handleAddSite = () => {
     countyCode: model.value.countyCode,
     remark: ''
   })
+
   nextTick(() => {
     uni.pageScrollTo({
       selector: `#site-${siteForms.value.length - 1}`,
@@ -215,26 +252,29 @@ const handleSubmit = async (type) => {
         }
         loading.value = false
       }
+    } else {
+      loading.value = false
     }
   })
 }
 
 const handlePublish = (data) => {
   const options = {
-    title: '发布提示',
-    editable: true,
+    title: '确认发布吗？',
+    message: '确认发布吗？',
+    editable: false,
     placeholderText: '请输入版本备注信息',
     success: async (resData) => {
       if (resData.confirm) {
-        if (!resData.content) {
-          uni.showToast({ title: '请输入版本备注', icon: 'none', complete: () => uni.showModal(options) })
-          return
-        }
+        // if (!resData.content) {
+        //   uni.showToast({ title: '请输入版本备注', icon: 'none', complete: () => uni.showModal(options) })
+        //   return
+        // }
         // 发布
         const res = await updateProjectApi({
           ...data,
           publishStatusCode: 'published',
-          versionsRemark: resData.content.trim()
+          // versionsRemark: resData.content.trim()
         })
         if (res.code === 200) {
           uni.showToast({
@@ -247,6 +287,8 @@ const handlePublish = (data) => {
           }, 1000)
         }
         loading.value = false
+      } else {
+        loading.value = false
       }
     }
   }
@@ -257,7 +299,13 @@ const handlePublish = (data) => {
 const getSiteDetail = async (projectId) => {
   const res = await getProjectStationApi({ projectId })
   if (res.code === 200) {
+    for (let i = 0; i < res.data.length; i++) {
+      await getForArea(i, res.data[i].provinceCode, 'cityColumns')
+      await getForArea(i, res.data[i].provinceCode, 'countyColumns', res.data[i].cityCode)
+    }
+
     siteForms.value = res.data
+    projectStationId.value = res.data.length + 1
   }
 }
 
@@ -348,11 +396,11 @@ onLoad(async (options) => {
             placeholder="请输入站点名称" required />
           <wd-picker :columns="provinceColumns" label-key="name" value-key="code" label-width="80px" label="归属省份"
             placeholder="请选择归属省份" v-model="item.provinceCode" prop="provinceCode"
-            @confirm="getArea(item.provinceCode, 'cityColumns', index)" />
-          <wd-picker :columns="cityColumns" label-key="name" value-key="code" label-width="80px" label="归属地市"
+            @confirm="getForArea(index, item.provinceCode, 'cityColumns', null, 'select')" />
+          <wd-picker :columns="row['cityColumns' + index]" label-key="name" value-key="code" label-width="80px" label="归属地市"
             placeholder="请选择归属地市" v-model="item.cityCode" prop="cityCode"
-            @confirm="getArea(item.cityCode, 'countyColumns', index)" />
-          <wd-picker :columns="countyColumns" label-key="name" value-key="code" label-width="80px" label="归属区县"
+            @confirm="getForArea(index, item.provinceCode, 'countyColumns', item.cityCode, 'select')" />
+          <wd-picker :columns="row['countyColumns' + index]" label-key="name" value-key="code" label-width="80px" label="归属区县"
             placeholder="请选择归属区县" v-model="item.countyCode" prop="countyCode" />
           <wd-input label="备注" label-width="80px" prop="remark" clearable v-model="item.remark" placeholder="请输入备注" />
           <view :id="`site-${index}`"></view>

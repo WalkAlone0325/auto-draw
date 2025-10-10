@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { getParagraphListApi, getNodeListApi, deleteSectionApi, deleteNodeApi, publishBatchApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 
-const scale = ref(18)
+const scale = ref(20)
 const latitude = ref('')
 const longitude = ref('')
 const markers = ref([])
