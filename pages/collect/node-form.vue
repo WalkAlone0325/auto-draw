@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 import { getTypeApi, getDictApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getNodeDetailApi, updateNodeApi, createNodeDefaultApi, copyNodeDefaultApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 
@@ -54,7 +54,7 @@ const getDict = async (code, key) => {
   }
 }
 
-const speaColumns = ref([])
+const specColumns = ref([])
 const attrColumns = ref([])
 const getType = async (type, key) => {
   const res = await getTypeApi(type)
@@ -65,7 +65,7 @@ const getType = async (type, key) => {
 const getSpec = async (code, key) => {
   const res = await getSpecApi(code)
   if (res.code === 200) {
-    speaColumns.value = res.data
+    specColumns.value = res.data
   }
 }
 const getAttr = async (code, key) => {
@@ -172,6 +172,9 @@ const getCreateDefault = async (id) => {
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
+
+
+  initData()
   }
 }
 
@@ -183,6 +186,53 @@ const getCopyDefault = async (id) => {
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
+  }
+}
+
+// 杆路类型改变
+const confirmPolePathType = ({ value }) => {
+  model.value.nodeTypeId = ''
+  model.value.nodeNameId = ''
+  model.value.nodeSpecificationId = ''
+  model.value.nodeAttributeId = ''
+  dist.value.nodeColumns = []
+  dist.value.nameColumns = []
+  specColumns.value = []
+  attrColumns.value = []
+  getType(value, 'nodeColumns')
+}
+// 节点类型改变
+const confirmNodeType = ({ value }) => {
+  model.value.nodeNameId = ''
+  model.value.nodeSpecificationId = ''
+  model.value.nodeAttributeId = ''
+  dist.value.nameColumns = []
+  specColumns.value = []
+  attrColumns.value = []
+  getType(value, 'nameColumns')
+}
+// 节点名称改变
+const confirmNodeName = ({ value }) => {
+  model.value.nodeSpecificationId = ''
+  model.value.nodeAttributeId = ''
+  specColumns.value = []
+  attrColumns.value = []
+  getSpec(value, 'specColumns')
+  getAttr(value, 'attrColumns')
+}
+
+const initData = async () => {
+  await getType('1', 'poleColumns')
+  if (!model.value.polePathTypeId) {
+    model.value.polePathTypeId = dist.value.poleColumns[0].value
+    await getType(model.value.polePathTypeId, 'nodeColumns')
+    model.value.nodeTypeId = dist.value.nodeColumns[0].value
+    await getType(model.value.nodeTypeId, 'nameColumns')
+    model.value.nodeNameId = dist.value.nameColumns[0].value
+    await getSpec(model.value.nodeNameId, 'specColumns')
+    await getAttr(model.value.nodeNameId, 'attrColumns')
+    model.value.nodeSpecificationId = specColumns.value?.[0]?.value || ''
+    model.value.nodeAttributeId = attrColumns.value?.[0].value || ''
   }
 }
 
@@ -230,16 +280,16 @@ onLoad((param) => {
               label-width="80px" readonly />
           </view>
           <wd-picker :columns="dist.poleColumns" label-key="text" label-width="80px" label="杆路类型" placeholder="请选择杆路类型"
-            v-model="model.polePathTypeId" prop="polePathTypeId" />
+            v-model="model.polePathTypeId" @confirm="confirmPolePathType" prop="polePathTypeId" />
           <wd-picker :columns="dist.nodeColumns" label-key="text" label-width="80px" label="节点类型" placeholder="请选择节点类型"
-            v-model="model.nodeTypeId" prop="nodeTypeId" />
+            v-model="model.nodeTypeId" prop="nodeTypeId" @confirm="confirmNodeType" />
           <wd-picker :columns="dist.nameColumns" label-key="text" label-width="80px" label="节点名称" placeholder="请选择节点名称"
-            v-model="model.nodeNameId" prop="nodeNameId" />
+            v-model="model.nodeNameId" prop="nodeNameId" @confirm="confirmNodeName" />
           <wd-input prop="remark" v-model="model.remark" label="节点备注" placeholder="请输入节点备注" type="text"
             label-width="80px" />
           <wd-input readonly label-width="80px" label="节点编号" placeholder="请选择节点编号" v-model="model.nodeCode"
             prop="nodeCode" />
-          <wd-picker :columns="speaColumns" label-key="text" label-width="80px" label="节点规格" placeholder="请选择节点规格"
+          <wd-picker :columns="specColumns" label-key="text" label-width="80px" label="节点规格" placeholder="请选择节点规格"
             v-model="model.nodeSpecificationId" prop="nodeSpecificationId" />
           <wd-picker :columns="attrColumns" label-key="text" label-width="80px" label="节点属性" placeholder="请选择节点属性"
             v-model="model.nodeAttributeId" prop="nodeAttributeId" />

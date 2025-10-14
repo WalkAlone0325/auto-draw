@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 import { getTypeApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getAttrNodeApi, getNodeDetailApi, addSectionApi, getNodeListApi, getSectionCodeApi, getDistanceApi, createNodeDefaultApi, createSectionDefaultApi, getJwDistanceApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 
@@ -74,7 +74,7 @@ const dist = ref({
   sectionTypeColumns: [],
   sectionNameColumns: [],
 })
-const speaColumns = ref([])
+const specColumns = ref([])
 const attrColumns = ref([])
 const sectionSpecColumns = ref([])
 const sectionAttrColumns = ref([])
@@ -97,7 +97,7 @@ const getSpec = async (code, key, type) => {
     if (type === 'section') {
       sectionSpecColumns.value = res.data
     } else {
-      speaColumns.value = res.data
+      specColumns.value = res.data
     }
   }
 }
@@ -241,6 +241,8 @@ const getCreateNodeDefault = async (id) => {
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
+
+    initData()
   }
 }
 
@@ -329,6 +331,91 @@ const getNodeList = async () => {
 onLoad(() => {
   getNodeList()
 })
+
+// 杆路类型改变
+const confirmPolePathType = ({ value }) => {
+  model.value.nodeTypeId = ''
+  model.value.nodeNameId = ''
+  model.value.nodeSpecificationId = ''
+  model.value.nodeAttributeId = ''
+  dist.value.nodeColumns = []
+  dist.value.nameColumns = []
+  specColumns.value = []
+  attrColumns.value = []
+  getType(value, 'nodeColumns')
+}
+// 节点类型改变
+const confirmNodeType = ({ value }) => {
+  model.value.nodeNameId = ''
+  model.value.nodeSpecificationId = ''
+  model.value.nodeAttributeId = ''
+  dist.value.nameColumns = []
+  specColumns.value = []
+  attrColumns.value = []
+  getType(value, 'nameColumns')
+}
+// 节点名称改变
+const confirmNodeName = ({ value }) => {
+  model.value.nodeSpecificationId = ''
+  model.value.nodeAttributeId = ''
+  specColumns.value = []
+  attrColumns.value = []
+  getSpec(value, 'specColumns')
+  getAttr(value, 'attrColumns')
+}
+
+const confirmSectionClasses = ({ value }) => {
+  model.value.sectionTypeId = ''
+  model.value.sectionNameId = ''
+  model.value.sectionSpecificationId = ''
+  model.value.sectionAttributeId = ''
+  dist.value.sectionTypeColumns = []
+  dist.value.sectionNameColumns = []
+  sectionSpecColumns.value = []
+  sectionAttrColumns.value = []
+  getType(value, 'sectionTypeColumns')
+}
+const confirmSectionType = ({ value }) => {
+  model.value.sectionNameId = ''
+  model.value.sectionSpecificationId = ''
+  model.value.sectionAttributeId = ''
+  dist.value.sectionNameColumns = []
+  sectionSpecColumns.value = []
+  sectionAttrColumns.value = []
+  getType(value, 'sectionNameColumns')
+}
+const confirmSectionName = ({ value }) => {
+  model.value.sectionSpecificationId = ''
+  model.value.sectionAttributeId = ''
+  sectionSpecColumns.value = []
+  sectionAttrColumns.value = []
+  getSpec(value, 'sectionSpecColumns', 'section')
+  getAttr(value, 'sectionAttrColumns', 'section')
+}
+
+
+watchEffect(() => {
+  if (!model.value.nodePlaceLongitude || !model.value.nodePlaceLatitude || !selectObj.value.endStationLineNodeLongitude || !selectObj.value.endStationLineNodeLatitude) {
+    return
+  }
+  getDistance()
+})
+
+const initData = async () => {
+  await getType('1', 'poleColumns')
+  if (!model.value.polePathTypeId) {
+    model.value.polePathTypeId = dist.value.poleColumns[0].value
+    await getType(model.value.polePathTypeId, 'nodeColumns')
+    model.value.nodeTypeId = dist.value.nodeColumns[0].value
+    await getType(model.value.nodeTypeId, 'nameColumns')
+    model.value.nodeNameId = dist.value.nameColumns[0].value
+    await getSpec(model.value.nodeNameId, 'specColumns')
+    await getAttr(model.value.nodeNameId, 'attrColumns')
+    model.value.nodeSpecificationId = specColumns.value?.[0]?.value || ''
+    model.value.nodeAttributeId = attrColumns.value?.[0].value || ''
+  }
+}
+
 </script>
 
 <template>
@@ -347,16 +434,16 @@ onLoad(() => {
               label-width="80px" readonly />
           </view>
           <wd-picker :columns="dist.poleColumns" label-key="text" label-width="80px" label="杆路类型" placeholder="请选择杆路类型"
-            v-model="model.polePathTypeId" prop="polePathTypeId" />
+            v-model="model.polePathTypeId" prop="polePathTypeId" @confirm="confirmPolePathType" />
           <wd-picker :columns="dist.nodeColumns" label-key="text" label-width="80px" label="节点类型" placeholder="请选择节点类型"
-            v-model="model.nodeTypeId" prop="nodeTypeId" />
+            v-model="model.nodeTypeId" prop="nodeTypeId" @confirm="confirmNodeType" />
           <wd-picker :columns="dist.nameColumns" label-key="text" label-width="80px" label="节点名称" placeholder="请选择节点名称"
-            v-model="model.nodeNameId" prop="nodeNameId" />
+            v-model="model.nodeNameId" prop="nodeNameId" @confirm="confirmNodeName" />
           <wd-input prop="remark" v-model="model.remark" label="节点备注" placeholder="请输入节点备注" type="text"
             label-width="80px" />
           <wd-input readonly label-width="80px" label="节点编号" placeholder="请选择节点编号" v-model="model.nodeCode"
             prop="nodeCode" />
-          <wd-picker :columns="speaColumns" label-key="text" label-width="80px" label="节点规格" placeholder="请选择节点规格"
+          <wd-picker :columns="specColumns" label-key="text" label-width="80px" label="节点规格" placeholder="请选择节点规格"
             v-model="model.nodeSpecificationId" prop="nodeSpecificationId" />
           <wd-picker :columns="attrColumns" label-key="text" label-width="80px" label="节点属性" placeholder="请选择节点属性"
             v-model="model.nodeAttributeId" prop="nodeAttributeId" />
@@ -378,11 +465,11 @@ onLoad(() => {
               placeholder="请选择开始节点" type="text" label-width="80px" readonly />
           </view>
           <wd-picker :columns="dist.sectionCateColumns" label-key="text" label-width="80px" label="段落类别"
-            placeholder="请选择段落类别" v-model="model.sectionClassesId" prop="sectionClassesId" />
+            placeholder="请选择段落类别" v-model="model.sectionClassesId" prop="sectionClassesId" @confirm="confirmSectionClasses" />
           <wd-picker :columns="dist.sectionTypeColumns" label-key="text" label-width="80px" label="段落类型"
-            placeholder="请选择段落类型" v-model="model.sectionTypeId" prop="sectionTypeId" />
+            placeholder="请选择段落类型" v-model="model.sectionTypeId" prop="sectionTypeId" @confirm="confirmSectionType" />
           <wd-picker :columns="dist.sectionNameColumns" label-key="text" label-width="80px" label="段落名称"
-            placeholder="请选择段落名称" v-model="model.sectionNameId" prop="sectionNameId" />
+            placeholder="请选择段落名称" v-model="model.sectionNameId" prop="sectionNameId" @confirm="confirmSectionName" />
           <wd-input readonly label-width="80px" label="段落编号" placeholder="请选择段落编号" v-model="model.sectionCode"
             prop="sectionCode" />
           <wd-picker :columns="sectionSpecColumns" label-key="text" label-width="80px" label="段落规格"
@@ -392,12 +479,12 @@ onLoad(() => {
           <wd-input prop="sectionMaterialsCount" v-model="model.sectionMaterialsCount" label="段落数量"
             placeholder="请输入段落数量" type="number" label-width="80px" />
           <wd-input prop="sectionDistance" v-model="model.sectionDistance" label="段落距离" placeholder="请输入段落距离"
-            type="number" label-width="80px" center>
-            <template #suffix>
+            type="number" label-width="80px" readonly center>
+            <!-- <template #suffix>
               <view style="display: flex; align-items: center;">
                 <wd-button icon="keyboard-collapse" :loading="distanceLoading" @click="getDistance" size="small">计算</wd-button>
               </view>
-            </template>
+            </template> -->
           </wd-input>
         </wd-cell-group>
       </wd-form>

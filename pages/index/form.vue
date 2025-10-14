@@ -170,12 +170,13 @@ const handleCompanyConfirm = ({ value, selectedItems }) => {
 
 // 添加站点
 const siteForms = ref([])
-const projectStationId = ref(1)
+const pId = ref(1)
 const handleAddSite = async () => {
   await getForArea(siteForms.value.length, model.value.provinceCode, 'cityColumns')
   await getForArea(siteForms.value.length, model.value.provinceCode, 'countyColumns', model.value.cityCode)
   siteForms.value.push({
-    projectStationId: projectStationId.value++,
+    pId: pId.value++,
+    projectStationId: undefined,
     projectStationCode: '',
     projectStationName: '',
     provinceCode: model.value.provinceCode,
@@ -194,17 +195,11 @@ const handleAddSite = async () => {
 
 // 删除站点
 const handleDeleteSite = (item) => {
-  siteForms.value = siteForms.value.filter(i => i.projectStationId !== item.projectStationId)
+  siteForms.value = siteForms.value.filter(i => i.pId !== item.pId)
 }
 
 // 提交
 const handleSubmit = async (type) => {
-  const data = {
-    ...model.value,
-    opProjectStationInfoList: siteForms.value,
-    publishStatusCode: 'unpublished' // 未发布
-  }
-
   loading.value = true
   form.value.validate().then(async ({ valid, errors }) => {
     if (valid) {
@@ -220,15 +215,19 @@ const handleSubmit = async (type) => {
         }
       }
       if (model.value.projectId) {
-        if (type === 'published') {
-          data.publishStatusCode = 'published' // 已发布
-          handlePublish(data)
-        } else {
+        // if (type === 'published') {
+        //   data.publishStatusCode = 'published' // 已发布
+        //   handlePublish(data)
+        // } else {
           // 未发布 更新
-          const res = await updateProjectApi(data)
+          const res = await updateProjectApi({
+            ...model.value,
+            opProjectStationInfoList: siteForms.value,
+            publishStatusCode: 'published' // 已发布
+          })
           if (res.code === 200) {
             uni.showToast({
-              title: '更新成功',
+              title: '项目修改成功',
               icon: 'success'
             })
             setTimeout(() => {
@@ -237,12 +236,16 @@ const handleSubmit = async (type) => {
             }, 1000)
           }
           loading.value = false
-        }
+        // }
       } else {
-        const res = await addProjectApi(data)
+        const res = await addProjectApi({
+          ...model.value,
+          opProjectStationInfoList: siteForms.value,
+          publishStatusCode: 'published' // 已发布
+        })
         if (res.code === 200) {
           uni.showToast({
-            title: '新增成功',
+            title: '项目新增成功',
             icon: 'success'
           })
           setTimeout(() => {
@@ -304,8 +307,8 @@ const getSiteDetail = async (projectId) => {
       await getForArea(i, res.data[i].provinceCode, 'countyColumns', res.data[i].cityCode)
     }
 
-    siteForms.value = res.data
-    projectStationId.value = res.data.length + 1
+    siteForms.value = res.data.map(i => ({ ...i, pId: i.projectStationId }))
+    pId.value = res.data.length + 1
   }
 }
 
@@ -385,7 +388,7 @@ onLoad(async (options) => {
           </template>
         </wd-cell-group>
 
-        <view class="site-item" v-for="(item, index) in siteForms" :key="item.projectStationId">
+        <view class="site-item" v-for="(item, index) in siteForms" :key="item.pId">
           <view class="title-con">
             <view>{{ `站点${index + 1}` }}</view>
             <wd-button type="error" size="small" @click="handleDeleteSite(item)">删除</wd-button>
@@ -411,8 +414,8 @@ onLoad(async (options) => {
     <view class="footer">
       <wd-button custom-class="custom-btn" type="primary" :loading="loading" block :round="false"
         @click="handleSubmit">保存</wd-button>
-      <wd-button v-if="model.projectId" custom-class="custom-btn" type="success" :loading="loading" block :round="false"
-        @click="handleSubmit('published')">发布</wd-button>
+      <!-- <wd-button v-if="model.projectId" custom-class="custom-btn" type="success" :loading="loading" block :round="false"
+        @click="handleSubmit('published')">发布</wd-button> -->
     </view>
   </view>
 </template>

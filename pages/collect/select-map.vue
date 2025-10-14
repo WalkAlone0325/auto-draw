@@ -3,10 +3,11 @@ import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 
 const scale = ref(20)
-const latitude = ref('')
-const longitude = ref('')
+const latitude = ref(37.73605)
+const longitude = ref(112.56566)
 const markers = ref([])
 const key = ref('')
+const accuracy = ref(0)
 
 const initMap = () => {
   uni.getLocation({
@@ -14,14 +15,14 @@ const initMap = () => {
     success: (res) => {
       latitude.value = res.latitude
       longitude.value = res.longitude
-      markers.value = [{
-        id: 1,
-        latitude: res.latitude,
-        longitude: res.longitude,
-        iconPath: '/static/now-local.png',
-        width: 30,
-        height: 30
-      }]
+      // markers.value = [{
+      //   id: 1,
+      //   latitude: res.latitude,
+      //   longitude: res.longitude,
+      //   iconPath: '/static/now-local.png',
+      //   width: 30,
+      //   height: 30
+      // }]
     },
     fail: (res) => {
       console.log('🚀:>> ', res)
@@ -34,6 +35,10 @@ const get = () => {
     type: 'gcj02',
     success: () => {
       uni.onLocationChange(function(res) {
+        if(accuracy.value !== 0 && res.accuracy > accuracy.value) {
+          return
+        }
+        accuracy.value = res.accuracy
         console.log('🚀:>> ', res)
         latitude.value = res.latitude
         longitude.value = res.longitude

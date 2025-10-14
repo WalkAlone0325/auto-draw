@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getSectionDetailApi, getDistanceApi, addSectionApi, updateSectionApi, getNodeListApi, getSectionCodeApi, getAttrApi, getTypeApi, getSpecApi, createSectionDefaultApi, copySectionDefaultApi } from '@/api'
 
@@ -189,6 +189,7 @@ const getCreateDefault = async (id) => {
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
+    initData()
   }
 }
 
@@ -231,6 +232,55 @@ onLoad(async (options) => {
   }
 })
 
+const confirmSectionClasses = ({ value }) => {
+  model.value.sectionTypeId = ''
+  model.value.sectionNameId = ''
+  model.value.sectionSpecificationId = ''
+  model.value.sectionAttributeId = ''
+  dist.value.sectionTypeColumns = []
+  dist.value.sectionNameColumns = []
+  sectionSpecColumns.value = []
+  sectionAttrColumns.value = []
+  getType(value, 'sectionTypeColumns')
+}
+const confirmSectionType = ({ value }) => {
+  model.value.sectionNameId = ''
+  model.value.sectionSpecificationId = ''
+  model.value.sectionAttributeId = ''
+  dist.value.sectionNameColumns = []
+  sectionSpecColumns.value = []
+  sectionAttrColumns.value = []
+  getType(value, 'sectionNameColumns')
+}
+const confirmSectionName = ({ value }) => {
+  model.value.sectionSpecificationId = ''
+  model.value.sectionAttributeId = ''
+  sectionSpecColumns.value = []
+  sectionAttrColumns.value = []
+  getSpec(value, 'sectionSpecColumns', 'section')
+  getAttr(value, 'sectionAttrColumns', 'section')
+}
+
+watchEffect(() => {
+  if(model.value.startStationLineNodeId && model.value.endStationLineNodeId) {
+    getDistance()
+  }
+})
+
+const initData = async () => {
+  await getType('2', 'sectionCateColumns')
+  if(!model.value.sectionClassesId) {
+    model.value.sectionClassesId = dist.value.sectionCateColumns?.[0].value || ''
+    await getType(model.value.sectionClassesId, 'sectionTypeColumns')
+    model.value.sectionTypeId = dist.value.sectionTypeColumns?.[0].value || ''
+    await getType(model.value.sectionTypeId, 'sectionNameColumns')
+    model.value.sectionNameId = dist.value.sectionNameColumns?.[0].value || ''
+    await getSpec(model.value.sectionNameId, 'sectionSpecColumns', 'section')
+    await getAttr(model.value.sectionNameId, 'sectionAttrColumns', 'section')
+    model.value.sectionSpecificationId = sectionSpecColumns.value?.[0]?.value || ''
+    model.value.sectionAttributeId = sectionAttrColumns.value?.[0].value || ''
+  }
+}
 
 </script>
 
@@ -253,20 +303,20 @@ onLoad(async (options) => {
           <wd-picker :columns="list" label-key="nodeCode" value-key="projectStationLineNodeId" label-width="80px"
             label="结束节点" placeholder="请选择结束节点" v-model="model.endStationLineNodeId" prop="endStationLineNodeId" />
           <wd-input prop="sectionDistance" v-model="model.sectionDistance" label="段落距离" placeholder="请输入段落距离"
-            type="number" label-width="80px" center>
-            <template #suffix>
+            type="number" label-width="80px" readonly center>
+            <!-- <template #suffix>
               <view style="display: flex; align-items: center;">
                 <wd-button icon="keyboard-collapse" :loading="distanceLoading" @click="getDistance"
                   size="small">计算</wd-button>
               </view>
-            </template>
+            </template> -->
           </wd-input>
           <wd-picker :columns="dist.sectionCateColumns" label-key="text" label-width="80px" label="段落类别"
-            placeholder="请选择段落类别" v-model="model.sectionClassesId" prop="sectionClassesId" />
+            placeholder="请选择段落类别" v-model="model.sectionClassesId" prop="sectionClassesId" @confirm="confirmSectionClasses" />
           <wd-picker :columns="dist.sectionTypeColumns" label-key="text" label-width="80px" label="段落类型"
-            placeholder="请选择段落类型" v-model="model.sectionTypeId" prop="sectionTypeId" />
+            placeholder="请选择段落类型" v-model="model.sectionTypeId" prop="sectionTypeId" @confirm="confirmSectionType" />
           <wd-picker :columns="dist.sectionNameColumns" label-key="text" label-width="80px" label="段落名称"
-            placeholder="请选择段落名称" v-model="model.sectionNameId" prop="sectionNameId" />
+            placeholder="请选择段落名称" v-model="model.sectionNameId" prop="sectionNameId" @confirm="confirmSectionName" />
           <wd-input readonly label-width="80px" required label="段落编号" placeholder="请选择段落编号" v-model="model.sectionCode"
             prop="sectionCode" />
           <wd-picker :columns="sectionSpecColumns" label-key="text" label-width="80px" label="段落规格"
