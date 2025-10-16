@@ -369,20 +369,21 @@ const clickPolyline = (e) => {
 const publishLoading = ref(false)
 const handlePublish = async () => {
   const options = {
-    title: '发布提示',
-    editable: true,
+    title: '确认发布吗？',
+    message: '确认发布吗？',
+    editable: false,
     placeholderText: '请输入版本备注信息',
     success: async (res) => {
       if (res.confirm) {
-        if (!res.content) {
-          uni.showToast({ title: '请输入版本备注', icon: 'none', complete: () => uni.showModal(options) })
-          return
-        }
+        // if (!res.content) {
+        //   uni.showToast({ title: '请输入版本备注', icon: 'none', complete: () => uni.showModal(options) })
+        //   return
+        // }
         publishLoading.value = true
         const resD = await publishBatchApi({
           projectStationLineId: param.value.projectStationLineId,
           publishStatusCode: 'published',
-          versionsRemark: res.content.trim()
+          // versionsRemark: res.content.trim()
         })
         if (resD.code === 200) {
           uni.showToast({

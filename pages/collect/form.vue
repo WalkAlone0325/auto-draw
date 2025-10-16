@@ -28,12 +28,12 @@ const rules = ref({
   nodeNameId: [
     { required: true, message: '请选择节点名称', trigger: 'blur' }
   ],
-  nodeSpecificationId: [
-    { required: true, message: '请选择节点规格', trigger: 'blur' }
-  ],
-  nodeAttributeId: [
-    { required: true, message: '请选择节点属性', trigger: 'blur' }
-  ],
+  // nodeSpecificationId: [
+  //   { required: true, message: '请选择节点规格', trigger: 'blur' }
+  // ],
+  // nodeAttributeId: [
+  //   { required: true, message: '请选择节点属性', trigger: 'blur' }
+  // ],
   polePathTypeId: [
     { required: true, message: '请选择杆路类型', trigger: 'blur' }
   ],
@@ -439,10 +439,10 @@ const initData = async () => {
             v-model="model.nodeTypeId" prop="nodeTypeId" @confirm="confirmNodeType" />
           <wd-picker :columns="dist.nameColumns" label-key="text" label-width="80px" label="节点名称" placeholder="请选择节点名称"
             v-model="model.nodeNameId" prop="nodeNameId" @confirm="confirmNodeName" />
-          <wd-input prop="remark" v-model="model.remark" label="节点备注" placeholder="请输入节点备注" type="text"
-            label-width="80px" />
           <wd-input readonly label-width="80px" label="节点编号" placeholder="请选择节点编号" v-model="model.nodeCode"
             prop="nodeCode" />
+          <wd-input prop="remark" v-model="model.remark" label="节点备注" placeholder="请输入节点备注" type="text"
+            label-width="80px" />
           <wd-picker :columns="specColumns" label-key="text" label-width="80px" label="节点规格" placeholder="请选择节点规格"
             v-model="model.nodeSpecificationId" prop="nodeSpecificationId" />
           <wd-picker :columns="attrColumns" label-key="text" label-width="80px" label="节点属性" placeholder="请选择节点属性"
