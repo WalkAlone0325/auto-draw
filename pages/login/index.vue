@@ -30,6 +30,7 @@ function handleSubmit() {
       console.log('🚀:>> data: ', data)
       const res = await loginApi(data)
       if (res.code === 200) {
+        uni.setStorageSync('login', { username: model.username, password: model.password })
         uni.setStorageSync('token', res.data.token)
         const info = await getInfoApi()
         uni.setStorageSync('user', info.data.user)
@@ -86,6 +87,9 @@ const handleOneLogin = async () => {
       title: '微信授权失败',
       icon: 'none'
     })
+    const login = uni.getStorageSync('login')
+    model.username = login.username
+    model.password = login.password
     oneLoading.value = false
   }
 }
