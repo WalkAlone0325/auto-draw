@@ -147,6 +147,7 @@ const getDetail = async (id) => {
       nodePlace: res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude,
       projectStationLineNodeId: isCopy.value ? '' : res.data.projectStationLineNodeId
     }
+    initDefaultData()
   }
 }
 
@@ -172,9 +173,7 @@ const getCreateDefault = async (id) => {
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : ''
     }
-
-
-  initData()
+  initDefaultData()
   }
 }
 
@@ -187,6 +186,7 @@ const getCopyDefault = async (id) => {
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
   }
+  initDefaultData()
 }
 
 // 杆路类型改变
@@ -221,18 +221,17 @@ const confirmNodeName = ({ value }) => {
   getAttr(value, 'attrColumns')
 }
 
-const initData = async () => {
+const initDefaultData = async () => {
   await getType('1', 'poleColumns')
-  if (!model.value.polePathTypeId) {
-    model.value.polePathTypeId = dist.value.poleColumns[0].value
+  if(model.value.polePathTypeId) {
     await getType(model.value.polePathTypeId, 'nodeColumns')
-    model.value.nodeTypeId = dist.value.nodeColumns[0].value
+  }
+  if(model.value.nodeTypeId) {
     await getType(model.value.nodeTypeId, 'nameColumns')
-    model.value.nodeNameId = dist.value.nameColumns[0].value
+  }
+  if(model.value.nodeNameId) {
     await getSpec(model.value.nodeNameId, 'specColumns')
     await getAttr(model.value.nodeNameId, 'attrColumns')
-    model.value.nodeSpecificationId = specColumns.value?.[0]?.value || ''
-    model.value.nodeAttributeId = attrColumns.value?.[0].value || ''
   }
 }
 
@@ -242,12 +241,6 @@ onLoad((param) => {
   param.value = param
   isCopy.value = param.copy === 'copy'
   info.value = uni.getStorageSync('info')
-  getType('1', 'poleColumns')
-  getType('3', 'nodeColumns')
-  getType('12', 'nameColumns')
-  getSpec('15', 'specColumns')
-  getAttr('15', 'attrColumns')
-  getDict('reference_substance_type', 'attrTypeColumns')
   curId.value = param.projectStationLineId
 
   if (param.projectStationLineNodeId) {

@@ -23,10 +23,10 @@ const getList = async () => {
     total.value = res.total
     loading.value = false
   }
-  if (!list.value.length) {
-    state.value = 'error'
-  } else if (list.value.length === total.value) {
+  if (list.value.length === total.value) {
     state.value = 'finished'
+  } else if (!list.value.length) {
+    state.value = 'error'
   }
 }
 

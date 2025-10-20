@@ -49,7 +49,7 @@ const select = (item) => {
 <template>
   <view class="select-node-page">
     <view class="node-list">
-      <BaseInfoCard v-for="i in list" :item="i" :tab="1" noBtn @select="select" />
+      <BaseInfoCard v-for="(i, idx) in list" :key="idx" :item="i" :tab="1" noBtn @select="select" />
     </view>
   </view>
 </template>

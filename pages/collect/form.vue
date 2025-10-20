@@ -140,69 +140,6 @@ const selectNode = (key) => {
   })
 }
 
-const loading = ref(false)
-const form = ref()
-const curId = ref('')
-const distanceLoading = ref(false)
-
-const handleSubmit = async () => {
-  loading.value = true
-  const { valid } = await form.value.validate()
-  if (valid) {
-    const res = await addNodeApi({
-      ...model.value,
-      projectStationLineId: curId.value
-    })
-    if (res.code === 200) {
-      if (isShow.value) {
-        // const code = nodeList.value[nodeList.value.length - 1].projectStationLineNodeId
-        let code
-        const cRes = await getNodeListApi({ projectStationLineId: curId.value })
-        if(cRes.code === 200) {
-          code = cRes.rows[cRes.rows.length - 1].projectStationLineNodeId
-        }
-        const res = await addSectionApi({
-          endStationLineNodeId: code,
-          sectionCode: model.value.sectionCode,
-          sectionClassesId: model.value.sectionClassesId,
-          sectionNameId: model.value.sectionNameId,
-          sectionTypeId: model.value.sectionTypeId,
-          startStationLineNodeId: model.value.endStationLineNodeId,
-          sectionAttributeId: model.value.sectionAttributeId,
-          sectionDistance: model.value.sectionDistance,
-          sectionMaterialsCount: model.value.sectionMaterialsCount,
-          projectStationLineId: curId.value
-        })
-        if (res.code === 200) {
-          uni.showToast({ title: '新增成功' })
-          loading.value = false
-          uni.navigateBack({
-            delta: 1,
-            success: () => {
-              uni.$emit('refresh')
-            }
-          })
-        } else {
-          loading.value = false
-        }
-      } else {
-        uni.showToast({ title: '新增成功' })
-        loading.value = false
-        uni.navigateBack({
-          delta: 1,
-          success: () => {
-            uni.$emit('refresh')
-          }
-        })
-      }
-
-    } else {
-      loading.value = false
-    }
-  }
-  loading.value = false
-}
-
 // 计算距离
 const getDistance = async () => {
   if (!model.value.nodePlaceLongitude || !model.value.nodePlaceLatitude || !selectObj.value.endStationLineNodeLongitude || !selectObj.value.endStationLineNodeLatitude) {
@@ -242,7 +179,7 @@ const getCreateNodeDefault = async (id) => {
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
 
-    initData()
+    initDefaultData()
   }
 }
 
@@ -255,6 +192,7 @@ const getCreateSectionDefault = async (id) => {
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
+    initSectionDefault()
   }
 }
 
@@ -274,6 +212,7 @@ onShow(() => {
   })
   uni.$on('selectNode', (data) => {
     model.value.endStationLineNodeId = data.projectStationLineNodeId
+    endId.value = data.projectStationLineNodeId
     model.value.endStationLineNodeName = data.nodeCode
     selectObj.value.endStationLineNodeLongitude = data.nodePlaceLongitude
     selectObj.value.endStationLineNodeLatitude = data.nodePlaceLatitude
@@ -286,20 +225,21 @@ onLoad((param) => {
   param.value = param
   isShow.value = param.show != '0'
   info.value = uni.getStorageSync('info')
-  getType('1', 'poleColumns')
-  getType('3', 'nodeColumns')
-  getType('12', 'nameColumns')
-  getSpec('15', 'specColumns')
-  getAttr('15', 'attrColumns')
+  // getType('1', 'poleColumns')
+  // getType('3', 'nodeColumns')
+  // getType('12', 'nameColumns')
+  // getSpec('15', 'specColumns')
+  // getAttr('15', 'attrColumns')
   getAttrNode('reference_substance_type', 'attrNodeColumns')
   curId.value = param.projectStationLineId
+  getNodeList()
 
   if (isShow.value) {
-    getType('2', 'sectionCateColumns')
-    getType('129', 'sectionTypeColumns')
-    getType('133', 'sectionNameColumns')
-    getSpec('141', 'sectionSpecColumns', 'section')
-    getAttr('141', 'sectionAttrColumns', 'section')
+    // getType('2', 'sectionCateColumns')
+    // getType('129', 'sectionTypeColumns')
+    // getType('133', 'sectionNameColumns')
+    // getSpec('141', 'sectionSpecColumns', 'section')
+    // getAttr('141', 'sectionAttrColumns', 'section')
     // getSectionCode(param.projectStationLineId)
     getCreateSectionDefault(param.projectStationLineId)
   }
@@ -315,6 +255,7 @@ onLoad((param) => {
 // 获取节点
 const lastNode = ref({})
 const nodeList = ref([])
+const endId = ref(null)
 const getNodeList = async () => {
   const res = await getNodeListApi({
     projectStationLineId: curId.value,
@@ -322,15 +263,14 @@ const getNodeList = async () => {
   if (res.code === 200 && res.rows.length > 0) {
     nodeList.value = res.rows
     lastNode.value = res.rows[res.rows.length - 1]
-    model.value.endStationLineNodeId = lastNode.value.projectStationLineNodeId
+    console.log(lastNode.value, 'lastNode.value')
+    endId.value = lastNode.value.projectStationLineNodeId
+    console.log(endId.value, 'endId')
     model.value.endStationLineNodeName = lastNode.value.nodeCode
     selectObj.value.endStationLineNodeLongitude = lastNode.value.nodePlaceLongitude
     selectObj.value.endStationLineNodeLatitude = lastNode.value.nodePlaceLatitude
   }
 }
-onLoad(() => {
-  getNodeList()
-})
 
 // 杆路类型改变
 const confirmPolePathType = ({ value }) => {
@@ -401,20 +341,99 @@ watchEffect(() => {
   getDistance()
 })
 
-const initData = async () => {
+const initDefaultData = async () => {
   await getType('1', 'poleColumns')
-  if (!model.value.polePathTypeId) {
-    model.value.polePathTypeId = dist.value.poleColumns[0].value
+  if(model.value.polePathTypeId) {
     await getType(model.value.polePathTypeId, 'nodeColumns')
-    model.value.nodeTypeId = dist.value.nodeColumns[0].value
+  }
+  if(model.value.nodeTypeId) {
     await getType(model.value.nodeTypeId, 'nameColumns')
-    model.value.nodeNameId = dist.value.nameColumns[0].value
+  }
+  if(model.value.nodeNameId) {
     await getSpec(model.value.nodeNameId, 'specColumns')
     await getAttr(model.value.nodeNameId, 'attrColumns')
-    model.value.nodeSpecificationId = specColumns.value?.[0]?.value || ''
-    model.value.nodeAttributeId = attrColumns.value?.[0].value || ''
   }
 }
+
+const initSectionDefault = async () => {
+  await getType('2', 'sectionCateColumns')
+  if(model.value.sectionClassesId) {
+    await getType(model.value.sectionClassesId, 'sectionTypeColumns')
+  }
+  if(model.value.sectionTypeId) {
+    await getType(model.value.sectionTypeId, 'sectionNameColumns')
+  }
+  if(model.value.sectionNameId) {
+    await getSpec(model.value.sectionNameId, 'sectionSpecColumns', 'section')
+    await getAttr(model.value.sectionNameId, 'sectionAttrColumns', 'section')
+  }
+}
+
+
+const loading = ref(false)
+const form = ref()
+const curId = ref('')
+const distanceLoading = ref(false)
+
+const handleSubmit = async () => {
+  loading.value = true
+  const { valid } = await form.value.validate()
+  if (valid) {
+    const res = await addNodeApi({
+      ...model.value,
+      projectStationLineId: curId.value
+    })
+    if (res.code === 200) {
+      if (isShow.value) {
+        // const code = nodeList.value[nodeList.value.length - 1].projectStationLineNodeId
+        let code
+        const cRes = await getNodeListApi({ projectStationLineId: curId.value })
+        if(cRes.code === 200) {
+          code = cRes.rows[cRes.rows.length - 1].projectStationLineNodeId
+        }
+        console.log(endId.value, 'endId 提交')
+        const res = await addSectionApi({
+          endStationLineNodeId: code,
+          projectStationLineId: curId.value,
+          sectionAttributeId: model.value.sectionAttributeId,
+          sectionClassesId: model.value.sectionClassesId,
+          sectionCode: model.value.sectionCode,
+          sectionDistance: model.value.sectionDistance,
+          sectionMaterialsCount: model.value.sectionMaterialsCount,
+          sectionNameId: model.value.sectionNameId,
+          sectionTypeId: model.value.sectionTypeId,
+          startStationLineNodeId: endId.value,
+        })
+        if (res.code === 200) {
+          uni.showToast({ title: '新增成功' })
+          loading.value = false
+          uni.navigateBack({
+            delta: 1,
+            success: () => {
+              uni.$emit('refresh')
+            }
+          })
+        } else {
+          loading.value = false
+        }
+      } else {
+        uni.showToast({ title: '新增成功' })
+        loading.value = false
+        uni.navigateBack({
+          delta: 1,
+          success: () => {
+            uni.$emit('refresh')
+          }
+        })
+      }
+
+    } else {
+      loading.value = false
+    }
+  }
+  loading.value = false
+}
+
 
 </script>
 

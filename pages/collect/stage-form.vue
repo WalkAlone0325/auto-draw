@@ -112,6 +112,7 @@ const getDetail = async (id) => {
       ...res.data,
       projectStationLineSectionId: isCopy.value ? '' : res.data.projectStationLineSectionId
     }
+    initDefaultData()
   }
 }
 
@@ -189,7 +190,7 @@ const getCreateDefault = async (id) => {
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
-    initData()
+    initDefaultData()
   }
 }
 
@@ -201,6 +202,7 @@ const getCopyDefault = async (id) => {
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
+    initDefaultData()
   }
 }
 
@@ -214,11 +216,6 @@ onLoad(async (options) => {
 
   info.value = uni.getStorageSync('info')
   getNodeList(options.projectStationLineId)
-  getType('2', 'sectionCateColumns')
-  getType('129', 'sectionTypeColumns')
-  getType('133', 'sectionNameColumns')
-  getSpec('141', 'sectionSpecColumns', 'section')
-  getAttr('141', 'sectionAttrColumns', 'section')
   if (options.id) {
     if (!isCopy.value) {
       await getDetail(options.id)
@@ -267,18 +264,21 @@ watchEffect(() => {
   }
 })
 
-const initData = async () => {
+const initDefaultData = async () => {
   await getType('2', 'sectionCateColumns')
-  if(!model.value.sectionClassesId) {
+  if(model.value.sectionClassesId) {
+    await getType(model.value.sectionClassesId, 'sectionTypeColumns')
+  } else {
     model.value.sectionClassesId = dist.value.sectionCateColumns?.[0].value || ''
     await getType(model.value.sectionClassesId, 'sectionTypeColumns')
-    model.value.sectionTypeId = dist.value.sectionTypeColumns?.[0].value || ''
+  }
+  if(model.value.sectionTypeId) {
     await getType(model.value.sectionTypeId, 'sectionNameColumns')
-    model.value.sectionNameId = dist.value.sectionNameColumns?.[0].value || ''
+  }
+  if(model.value.sectionNameId) {
     await getSpec(model.value.sectionNameId, 'sectionSpecColumns', 'section')
     await getAttr(model.value.sectionNameId, 'sectionAttrColumns', 'section')
-    model.value.sectionSpecificationId = sectionSpecColumns.value?.[0]?.value || ''
-    model.value.sectionAttributeId = sectionAttrColumns.value?.[0].value || ''
+    console.log(model.value.sectionAttributeId)
   }
 }
 

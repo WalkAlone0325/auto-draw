@@ -171,6 +171,36 @@ onShow(() => {
 })
 
 
+const confirmSectionClasses = ({ value }) => {
+  model.value.sectionTypeId = ''
+  model.value.sectionNameId = ''
+  model.value.sectionSpecificationId = ''
+  model.value.sectionAttributeId = ''
+  dist.value.sectionTypeColumns = []
+  dist.value.sectionNameColumns = []
+  sectionSpecColumns.value = []
+  sectionAttrColumns.value = []
+  getType(value, 'sectionTypeColumns')
+}
+const confirmSectionType = ({ value }) => {
+  model.value.sectionNameId = ''
+  model.value.sectionSpecificationId = ''
+  model.value.sectionAttributeId = ''
+  dist.value.sectionNameColumns = []
+  sectionSpecColumns.value = []
+  sectionAttrColumns.value = []
+  getType(value, 'sectionNameColumns')
+}
+const confirmSectionName = ({ value }) => {
+  model.value.sectionSpecificationId = ''
+  model.value.sectionAttributeId = ''
+  sectionSpecColumns.value = []
+  sectionAttrColumns.value = []
+  getSpec(value, 'sectionSpecColumns', 'section')
+  getAttr(value, 'sectionAttrColumns', 'section')
+}
+
+
 </script>
 
 <template>
@@ -191,11 +221,11 @@ onShow(() => {
               label-width="80px" readonly />
           </view>
           <wd-picker :columns="dist.sectionCateColumns" label-key="text" label-width="80px" label="段落类别"
-            placeholder="请选择段落类别" v-model="model.sectionClassesId" prop="sectionClassesId" />
+            placeholder="请选择段落类别" v-model="model.sectionClassesId" prop="sectionClassesId" @confirm="confirmSectionClasses" />
           <wd-picker :columns="dist.sectionTypeColumns" label-key="text" label-width="80px" label="段落类型"
-            placeholder="请选择段落类型" v-model="model.sectionTypeId" prop="sectionTypeId" />
+            placeholder="请选择段落类型" v-model="model.sectionTypeId" prop="sectionTypeId" @confirm="confirmSectionType" />
           <wd-picker :columns="dist.sectionNameColumns" label-key="text" label-width="80px" label="段落名称"
-            placeholder="请选择段落名称" v-model="model.sectionNameId" prop="sectionNameId" />
+            placeholder="请选择段落名称" v-model="model.sectionNameId" prop="sectionNameId" @confirm="confirmSectionName" />
           <wd-picker :columns="sectionAttrColumns" label-key="text" label-width="80px" label="段落属性"
             placeholder="请选择段落属性" v-model="model.sectionAttributeId" prop="sectionAttributeId" />
           <wd-input prop="sectionMaterialsCount" v-model="model.sectionMaterialsCount" label="段落数量"
