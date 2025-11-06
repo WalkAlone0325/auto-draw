@@ -2,8 +2,9 @@ import Request from '@/uni_modules/luch-request/index.js'
 import { getToken } from './'
 
 const http = new Request({
-  baseURL: 'http://220.194.140.28:8086/surveyingmappingadmin/'
+  // baseURL: 'http://220.194.140.28:8086/surveyingmappingadmin/',
   // baseURL: 'http://192.168.0.243:8080/'
+  baseURL: 'https://gps.sxtdwb.com:4043/surveyingmappingadmin/'
 })
 
 // 请求拦截器
