@@ -221,7 +221,8 @@ onShow(() => {
 
 const info = ref({})
 const isShow = ref(false)
-onLoad((param) => {
+onLoad(async (param) => {
+  uni.showLoading({ title: '加载中...' })
   param.value = param
   isShow.value = param.show != '0'
   info.value = uni.getStorageSync('info')
@@ -230,9 +231,9 @@ onLoad((param) => {
   // getType('12', 'nameColumns')
   // getSpec('15', 'specColumns')
   // getAttr('15', 'attrColumns')
-  getAttrNode('reference_substance_type', 'attrNodeColumns')
+  await getAttrNode('reference_substance_type', 'attrNodeColumns')
   curId.value = param.projectStationLineId
-  getNodeList()
+  await getNodeList()
 
   if (isShow.value) {
     // getType('2', 'sectionCateColumns')
@@ -241,15 +242,16 @@ onLoad((param) => {
     // getSpec('141', 'sectionSpecColumns', 'section')
     // getAttr('141', 'sectionAttrColumns', 'section')
     // getSectionCode(param.projectStationLineId)
-    getCreateSectionDefault(param.projectStationLineId)
+    await getCreateSectionDefault(param.projectStationLineId)
   }
 
   if (param.projectStationLineNodeId) {
-    getDetail(param.projectStationLineNodeId)
+    await getDetail(param.projectStationLineNodeId)
   } else {
     // getCode(param.projectStationLineId)
-    getCreateNodeDefault(param.projectStationLineId)
+    await getCreateNodeDefault(param.projectStationLineId)
   }
+  uni.hideLoading()
 })
 
 // 获取节点

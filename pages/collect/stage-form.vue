@@ -210,23 +210,25 @@ const info = ref({})
 const isCopy = ref(false)
 const curId = ref('')
 onLoad(async (options) => {
+  uni.showLoading({ title: '加载中...' })
   curId.value = model.value.projectStationLineId = options.projectStationLineId
   // 复制
   isCopy.value = options.copy === 'copy'
 
   info.value = uni.getStorageSync('info')
-  getNodeList(options.projectStationLineId)
+  await getNodeList(options.projectStationLineId)
   if (options.id) {
     if (!isCopy.value) {
       await getDetail(options.id)
     } else {
-      getCopyDefault(options.id)
+      await getCopyDefault(options.id)
     }
     // getSectionCode(options.projectStationLineId)
   } else {
     // getSectionCode(options.projectStationLineId)
-    getCreateDefault(options.projectStationLineId)
+    await getCreateDefault(options.projectStationLineId)
   }
+  uni.hideLoading()
 })
 
 const confirmSectionClasses = ({ value }) => {

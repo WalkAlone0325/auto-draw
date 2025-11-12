@@ -239,7 +239,8 @@ const initDefaultData = async () => {
 
 const info = ref({})
 const isCopy = ref(false)
-onLoad((param) => {
+onLoad(async (param) => {
+  uni.showLoading({ title: '加载中...' })
   param.value = param
   isCopy.value = param.copy === 'copy'
   info.value = uni.getStorageSync('info')
@@ -247,15 +248,16 @@ onLoad((param) => {
 
   if (param.projectStationLineNodeId) {
     if (!isCopy.value) {
-      getDetail(param.projectStationLineNodeId)
+     await getDetail(param.projectStationLineNodeId)
     } else {
-      getCopyDefault(param.projectStationLineNodeId)
+      await getCopyDefault(param.projectStationLineNodeId)
     }
     // getCode(param.projectStationLineId)
   } else {
     // getCode(param.projectStationLineId)
-    getCreateDefault(param.projectStationLineId)
+    await getCreateDefault(param.projectStationLineId)
   }
+  uni.hideLoading()
 })
 </script>
 

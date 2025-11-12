@@ -327,6 +327,7 @@ const getDetail = async (id) => {
 }
 
 onLoad(async (options) => {
+  uni.showLoading({ title: '加载中...' })
   getCompany()
   getStatus()
   getArea(0, 'provinceColumns')
@@ -338,6 +339,7 @@ onLoad(async (options) => {
     model.value.projectOwnershipCompanyCode = info.companyDeptId
     await getDeptRegionRel(model.value.projectOwnershipCompanyCode)
   }
+  uni.hideLoading()
 })
 
 

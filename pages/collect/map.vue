@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { getParagraphListApi, getNodeListApi, deleteSectionApi, deleteNodeApi, publishBatchApi } from '@/api'
-import { onLoad, onShow } from '@dcloudio/uni-app'
+import { onLoad } from '@dcloudio/uni-app'
 
 const scale = ref(20)
 const latitude = ref('')
@@ -52,15 +52,17 @@ const param = ref({
   projectId: '',
   projectName: ''
 })
-onLoad((option) => {
+onLoad(async (option) => {
   if (option) {
+    uni.showLoading({ title: '加载中...' })
     param.value = option
     pTotal.value = 0
     nTotal.value = 0
     markers.value = []
     polyline.value = []
-    getParagraphList()
-    getNodeList()
+    await getParagraphList()
+    await getNodeList()
+    uni.hideLoading()
   }
 })
 
