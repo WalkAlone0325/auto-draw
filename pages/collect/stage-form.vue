@@ -319,9 +319,9 @@ const initDefaultData = async () => {
             placeholder="请选择段落名称" v-model="model.sectionNameId" prop="sectionNameId" @confirm="confirmSectionName" />
           <wd-input readonly label-width="80px" required label="段落编号" placeholder="请选择段落编号" v-model="model.sectionCode"
             prop="sectionCode" />
-          <wd-picker :columns="sectionSpecColumns" label-key="text" label-width="80px" label="段落规格"
+          <wd-picker clearable :columns="sectionSpecColumns" label-key="text" label-width="80px" label="段落规格"
             placeholder="请选择段落规格" v-model="model.sectionSpecificationId" prop="sectionSpecificationId" />
-          <wd-picker :columns="sectionAttrColumns" label-key="text" label-width="80px" label="段落属性"
+          <wd-picker clearable :columns="sectionAttrColumns" label-key="text" label-width="80px" label="段落属性"
             placeholder="请选择段落属性" v-model="model.sectionAttributeId" prop="sectionAttributeId" />
           <wd-input prop="sectionMaterialsCount" v-model="model.sectionMaterialsCount" label="段落数量"
             placeholder="请输入段落数量" type="number" label-width="80px" />

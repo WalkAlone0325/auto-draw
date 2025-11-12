@@ -462,15 +462,15 @@ const handleSubmit = async () => {
             prop="nodeCode" />
           <wd-input prop="remark" v-model="model.remark" label="节点备注" placeholder="请输入节点备注" type="text"
             label-width="80px" />
-          <wd-picker :columns="specColumns" label-key="text" label-width="80px" label="节点规格" placeholder="请选择节点规格"
+          <wd-picker clearable :columns="specColumns" label-key="text" label-width="80px" label="节点规格" placeholder="请选择节点规格"
             v-model="model.nodeSpecificationId" prop="nodeSpecificationId" />
-          <wd-picker :columns="attrColumns" label-key="text" label-width="80px" label="节点属性" placeholder="请选择节点属性"
+          <wd-picker clearable :columns="attrColumns" label-key="text" label-width="80px" label="节点属性" placeholder="请选择节点属性"
             v-model="model.nodeAttributeId" prop="nodeAttributeId" />
           <view @click="clickNode('nodeReferenceSubstance')">
             <wd-input prop="nodeReferenceSubstance" v-model="model.nodeReferenceSubstance" label="节点参照物坐标"
               placeholder="请选择参照物节点坐标" type="text" label-width="120px" readonly clearable />
           </view>
-          <wd-picker :columns="attrNodeColumns" label-key="dictLabel" value-key="dictValue" label-width="120px" label="节点参照物类型"
+          <wd-picker clearable :columns="attrNodeColumns" label-key="dictLabel" value-key="dictValue" label-width="120px" label="节点参照物类型"
             placeholder="请选择节点参照物类型" v-model="model.nodeReferenceSubstanceTypeCode"
             prop="nodeReferenceSubstanceTypeCode" />
           <wd-input prop="nodeReferenceSubstanceName" v-model="model.nodeReferenceSubstanceName" label="节点参照物名称"
@@ -491,9 +491,9 @@ const handleSubmit = async () => {
             placeholder="请选择段落名称" v-model="model.sectionNameId" prop="sectionNameId" @confirm="confirmSectionName" />
           <wd-input readonly label-width="80px" label="段落编号" placeholder="请选择段落编号" v-model="model.sectionCode"
             prop="sectionCode" />
-          <wd-picker :columns="sectionSpecColumns" label-key="text" label-width="80px" label="段落规格"
+          <wd-picker clearable :columns="sectionSpecColumns" label-key="text" label-width="80px" label="段落规格"
             placeholder="请选择段落规格" v-model="model.sectionSpecificationId" prop="sectionSpecificationId" />
-          <wd-picker :columns="sectionAttrColumns" label-key="text" label-width="80px" label="段落属性"
+          <wd-picker clearable :columns="sectionAttrColumns" label-key="text" label-width="80px" label="段落属性"
             placeholder="请选择段落属性" v-model="model.sectionAttributeId" prop="sectionAttributeId" />
           <wd-input prop="sectionMaterialsCount" v-model="model.sectionMaterialsCount" label="段落数量"
             placeholder="请输入段落数量" type="number" label-width="80px" />

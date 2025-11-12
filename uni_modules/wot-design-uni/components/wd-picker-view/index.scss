@@ -64,7 +64,10 @@
   }
 
   @include edeep(roller) {
-    background: rgba(245, 245, 245, 1);
+    // background: rgba(245, 245, 245, 1);
+    background: #4D80F0;
+    font-weight: bold;
+    color: #fff !important;
     z-index: 0;
 
     &::before,

@@ -31,4 +31,9 @@
     display: flex;
     align-items: center;
   }
+  
+  .wd-picker-view-column__item--active {
+    color: #fff;
+    font-weight: bold;
+  }
 </style>

@@ -226,7 +226,7 @@ const confirmSectionName = ({ value }) => {
             placeholder="请选择段落类型" v-model="model.sectionTypeId" prop="sectionTypeId" @confirm="confirmSectionType" />
           <wd-picker :columns="dist.sectionNameColumns" label-key="text" label-width="80px" label="段落名称"
             placeholder="请选择段落名称" v-model="model.sectionNameId" prop="sectionNameId" @confirm="confirmSectionName" />
-          <wd-picker :columns="sectionAttrColumns" label-key="text" label-width="80px" label="段落属性"
+          <wd-picker clearable :columns="sectionAttrColumns" label-key="text" label-width="80px" label="段落属性"
             placeholder="请选择段落属性" v-model="model.sectionAttributeId" prop="sectionAttributeId" />
           <wd-input prop="sectionMaterialsCount" v-model="model.sectionMaterialsCount" label="段落数量"
             placeholder="请输入段落数量" type="number" label-width="80px" />

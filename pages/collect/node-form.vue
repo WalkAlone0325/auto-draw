@@ -135,6 +135,8 @@ const handleSubmit = async () => {
         loading.value = false
       }
     }
+  } else {
+    loading.value = false
   }
 }
 
@@ -282,9 +284,9 @@ onLoad((param) => {
             prop="nodeCode" />
           <wd-input prop="remark" v-model="model.remark" label="节点备注" placeholder="请输入节点备注" type="text"
             label-width="80px" />
-          <wd-picker :columns="specColumns" label-key="text" label-width="80px" label="节点规格" placeholder="请选择节点规格"
+          <wd-picker clearable :columns="specColumns" label-key="text" label-width="80px" label="节点规格" placeholder="请选择节点规格"
             v-model="model.nodeSpecificationId" prop="nodeSpecificationId" />
-          <wd-picker :columns="attrColumns" label-key="text" label-width="80px" label="节点属性" placeholder="请选择节点属性"
+          <wd-picker clearable :columns="attrColumns" label-key="text" label-width="80px" label="节点属性" placeholder="请选择节点属性"
             v-model="model.nodeAttributeId" prop="nodeAttributeId" />
           <view @click="clickNode('nodeReferenceSubstance')">
             <wd-input prop="nodeReferenceSubstance" v-model="model.nodeReferenceSubstance" label="节点参照物坐标"
