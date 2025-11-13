@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { isArray } from '@/uni_modules/wot-design-uni/components/common/util'
-import { getSectionDetailApi, getDistanceApi, addSectionApi, copySectionBatchApi, getNodeListApi, getSectionCodeApi, getAttrApi, getTypeApi, getSpecApi } from '@/api'
+import { getSectionDetailApi, getDistanceApi, copySectionBatchApi, getNodeListApi, getSectionCodeApi, getAttrApi, getTypeApi, getSpecApi } from '@/api'
 
 const loading = ref(false)
 const form = ref(null)

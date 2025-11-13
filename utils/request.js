@@ -27,29 +27,29 @@ http.interceptors.response.use(
       flag = true
       uni.removeStorageSync('token')
       uni.removeStorageSync('user')
-      uni.reLaunch({
-        url: '/pages/login/index'
-      })
-      // uni.showModal({
-      //   title: '提示',
-      //   content: '登录已过期，请重新登录',
-      //   showCancel: false,
-      //   success: res => {
-      //     if (res.confirm) {
-      //       uni.navigateTo({
-      //         url: '/pages/login/index'
-      //       })
-      //     } else if (res.cancel) {
-      //       console.log('用户点击取消')
-      //       uni.switchTab({
-      //         url: '/pages/index/index'
-      //       })
-      //     }
-      //   },
-      //   fail: err => {
-      //     console.log(err)
-      //   }
+      // uni.reLaunch({
+      //   url: '/pages/login/index'
       // })
+      uni.showModal({
+        title: '提示',
+        content: '登录已过期，请重新登录',
+        showCancel: false,
+        success: res => {
+          if (res.confirm) {
+            uni.navigateTo({
+              url: '/pages/login/index'
+            })
+          } else if (res.cancel) {
+            console.log('用户点击取消')
+            uni.switchTab({
+              url: '/pages/index/index'
+            })
+          }
+        },
+        fail: err => {
+          console.log(err)
+        }
+      })
     }
     if (data.code !== 200 && data.code != 401) {
       uni.showToast({ title: data.msg, icon: 'none' })
