@@ -2,12 +2,14 @@
 import { ref } from 'vue'
 import { getParagraphListApi, getNodeListApi, deleteSectionApi, deleteNodeApi, publishBatchApi } from '@/api'
 import { onLoad } from '@dcloudio/uni-app'
+import { plus } from '@/utils'
 
 const scale = ref(20)
 const latitude = ref('')
 const longitude = ref('')
 const markers = ref([])
 const polyline = ref([])
+const totalDis = ref(0)
 
 const initMap = () => {
   uni.getLocation({
@@ -151,6 +153,11 @@ const calcCount = (data, curItem, type) => {
   return len
 }
 
+const getDis = (data) => {
+  const dises = data.map(i => i.sectionDistance || 0)
+  totalDis.value = dises.reduce((pre, cur) => plus(pre, cur))
+}
+
 // 获取段落
 const getParagraphList = async () => {
   const res = await getParagraphListApi({
@@ -159,6 +166,7 @@ const getParagraphList = async () => {
   })
   if (res.code === 200 && res.rows.length > 0) {
     const data = res.rows
+    getDis(data)
     // 段落中间点
     const arr = []
     polyline.value = data.map((i, idx) => {
@@ -232,7 +240,7 @@ const getNodeList = async () => {
           { label: '杆路类型', value: i.nodeTypeName, row: 2 },
           { label: '节点类型', value: i.polePathTypeName, row: 1 },
           { label: '节点名称', value: i.nodeNameName, row: 2 },
-          { label: '节点规格', value: i.nodeSpecificationName, row: 1 }
+          { label: '节点规格', value: i.nodeSpecificationName }
         ]
       },
       id: i.projectStationLineNodeId,
@@ -470,7 +478,7 @@ const update = () => {
       </view>
     </map>
 
-    <wd-popup v-model="show" position="left" safe-area-inset-bottom custom-style="width: 80%" @close="close">
+    <wd-popup v-model="show" position="left" safe-area-inset-bottom custom-style="width: 86%" @close="close">
       <view class="tab-con">
         <wd-tabs v-model="tab" @change="handleTabChange" auto-line-width>
           <wd-tab title="段落"></wd-tab>
@@ -478,8 +486,9 @@ const update = () => {
         </wd-tabs>
       </view>
       <view class="main-content">
+        <view v-if="tab == 0" class="total-con" :style="{paddingTop: '44px'}">段落总距离：<text style="color: #fa4350; font-size: 34rpx;">{{totalDis}} 米</text></view>
         <scroll-view scroll-y class="scroll-y">
-          <view class="list-con">
+          <view class="list-con" :style="{paddingTop: tab == 0 ? '0' : '42px'}">
             <BaseInfoCard v-for="i in list" :key="i.id" :item="i.raw" :tab="tab" @del="delItem" />
           </view>
 
@@ -618,7 +627,7 @@ const update = () => {
 
   // popup
   .tab-con {
-    width: 80%;
+    width: 86%;
     position: fixed;
     left: 0;
     right: 0;
@@ -634,6 +643,16 @@ const update = () => {
       height: calc(100vh - 80px);
     }
 
+    .total-con {
+      font-size: 32rpx;
+      color: #333;
+      font-weight: bold;
+      padding: 10rpx 30rpx;
+      border-bottom: 1rpx solid #e5e5e5;
+      border-top: 1rpx solid #e5e5e5;
+      box-sizing: border-box;
+    }
+
     .list-con {
       padding-top: 42px;
       // padding-bottom: calc(env(safe-area-inset-bottom) + 80rpx);
@@ -642,7 +661,7 @@ const update = () => {
 
   .footer {
     background: #fff;
-    width: 80%;
+    width: 86%;
     position: fixed;
     bottom: 0;
     left: 0;

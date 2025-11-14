@@ -187,6 +187,7 @@ const getCreateDefault = async (id) => {
   const res = await createSectionDefaultApi(id)
   if (res.code === 200) {
     model.value = {
+      ...model.value,
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
@@ -199,6 +200,7 @@ const getCopyDefault = async (id) => {
   const res = await copySectionDefaultApi(id)
   if (res.code === 200) {
     model.value = {
+      ...model.value,
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
@@ -276,11 +278,15 @@ const initDefaultData = async () => {
   }
   if(model.value.sectionTypeId) {
     await getType(model.value.sectionTypeId, 'sectionNameColumns')
+  } else {
+   model.value.sectionTypeId = '' 
   }
   if(model.value.sectionNameId) {
     await getSpec(model.value.sectionNameId, 'sectionSpecColumns', 'section')
     await getAttr(model.value.sectionNameId, 'sectionAttrColumns', 'section')
     console.log(model.value.sectionAttributeId)
+  } else {
+    model.value.sectionNameId = ''
   }
 }
 

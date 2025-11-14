@@ -53,7 +53,7 @@ const select = (item) => {
 }
 
 const itemStyle = (i, idx) => {
-  let width = i.row ? ((idx + 1) % 2 === 0 ? '44%' : '56%') : '100%'
+  let width = i.row ? ((idx + 1) % 2 === 0 ? '49%' : '51%') : '100%'
   // if(props.item.infos.length === idx + 1) {
   //   width = '100%'
   // }

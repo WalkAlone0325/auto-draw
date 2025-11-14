@@ -172,6 +172,7 @@ const getCreateDefault = async (id) => {
   const res = await createNodeDefaultApi(id)
   if (res.code === 200) {
     model.value = {
+      ...model.value,
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : ''
     }
@@ -184,6 +185,7 @@ const getCopyDefault = async (id) => {
   const res = await copyNodeDefaultApi(id)
   if (res.code === 200) {
     model.value = {
+      ...model.value,
       ...res.data,
       nodePlace: res.data.nodePlaceLatitude ? res.data.nodePlaceLatitude + ',' + res.data.nodePlaceLongitude : '',
     }
@@ -227,6 +229,10 @@ const initDefaultData = async () => {
   await getType('1', 'poleColumns')
   if(model.value.polePathTypeId) {
     await getType(model.value.polePathTypeId, 'nodeColumns')
+  } else {
+    model.value.polePathTypeId = ''
+    model.value.nodeSpecificationId = ''
+    model.value.nodeAttributeId = ''
   }
   if(model.value.nodeTypeId) {
     await getType(model.value.nodeTypeId, 'nameColumns')

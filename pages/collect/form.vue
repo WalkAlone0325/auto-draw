@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watchEffect } from 'vue'
+import { nextTick, ref, watchEffect } from 'vue'
 import { getTypeApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getAttrNodeApi, getNodeDetailApi, addSectionApi, getNodeListApi, getSectionCodeApi, getDistanceApi, createNodeDefaultApi, createSectionDefaultApi, getJwDistanceApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 
@@ -13,7 +13,14 @@ const model = ref({
   projectStationLineId: '',
   nodePlace: '',
   nodePlaceLongitude: '',
-  nodePlaceLatitude: ''
+  nodePlaceLatitude: '',
+  sectionAttributeId: '',
+  sectionClassesId: '',
+  sectionCode: '',
+  sectionDistance: '',
+  sectionMaterialsCount: '',
+  sectionNameId: '',
+  sectionTypeId: '',
 })
 const rules = ref({
   nodePlace: [
@@ -306,7 +313,13 @@ const confirmNodeName = ({ value }) => {
   getAttr(value, 'attrColumns')
 }
 
-const confirmSectionClasses = ({ value }) => {
+const openNode = () => {
+}
+
+const openSectionClasses = () => {
+}
+
+const confirmSectionClasses = async ({ value }) => {
   model.value.sectionTypeId = ''
   model.value.sectionNameId = ''
   model.value.sectionSpecificationId = ''
@@ -347,6 +360,10 @@ const initDefaultData = async () => {
   await getType('1', 'poleColumns')
   if(model.value.polePathTypeId) {
     await getType(model.value.polePathTypeId, 'nodeColumns')
+  } else {
+    model.value.polePathTypeId = ''
+    model.value.nodeSpecificationId = ''
+    model.value.nodeAttributeId = ''
   }
   if(model.value.nodeTypeId) {
     await getType(model.value.nodeTypeId, 'nameColumns')
@@ -361,6 +378,8 @@ const initSectionDefault = async () => {
   await getType('2', 'sectionCateColumns')
   if(model.value.sectionClassesId) {
     await getType(model.value.sectionClassesId, 'sectionTypeColumns')
+  } else {
+    model.value.sectionClassesId = ''
   }
   if(model.value.sectionTypeId) {
     await getType(model.value.sectionTypeId, 'sectionNameColumns')
@@ -467,7 +486,7 @@ const handleSubmit = async () => {
           <wd-picker clearable :columns="specColumns" label-key="text" label-width="80px" label="节点规格" placeholder="请选择节点规格"
             v-model="model.nodeSpecificationId" prop="nodeSpecificationId" />
           <wd-picker clearable :columns="attrColumns" label-key="text" label-width="80px" label="节点属性" placeholder="请选择节点属性"
-            v-model="model.nodeAttributeId" prop="nodeAttributeId" />
+            v-model="model.nodeAttributeId" prop="nodeAttributeId" @open="openNode" />
           <view @click="clickNode('nodeReferenceSubstance')">
             <wd-input prop="nodeReferenceSubstance" v-model="model.nodeReferenceSubstance" label="节点参照物坐标"
               placeholder="请选择参照物节点坐标" type="text" label-width="120px" readonly clearable />
@@ -485,7 +504,7 @@ const handleSubmit = async () => {
             <wd-input prop="endStationLineNodeName" v-model="model.endStationLineNodeName" label="开始节点"
               placeholder="请选择开始节点" type="text" label-width="80px" readonly />
           </view>
-          <wd-picker :columns="dist.sectionCateColumns" label-key="text" label-width="80px" label="段落类别"
+          <wd-picker :columns="dist.sectionCateColumns" label-key="text" label-width="80px" label="段落类别" @open="openSectionClasses"
             placeholder="请选择段落类别" v-model="model.sectionClassesId" prop="sectionClassesId" @confirm="confirmSectionClasses" />
           <wd-picker :columns="dist.sectionTypeColumns" label-key="text" label-width="80px" label="段落类型"
             placeholder="请选择段落类型" v-model="model.sectionTypeId" prop="sectionTypeId" @confirm="confirmSectionType" />
