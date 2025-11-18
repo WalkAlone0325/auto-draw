@@ -153,9 +153,16 @@ const calcCount = (data, curItem, type) => {
   return len
 }
 
-const getDis = (data) => {
-  const dises = data.map(i => i.sectionDistance || 0)
-  totalDis.value = dises.reduce((pre, cur) => plus(pre, cur))
+const getDis = (data = []) => {
+  // 只记录 sectionClassesId = 129 第一类型的
+  if(data.length > 0) {
+    // const arrs = data.filter(i => i.sectionClassesId == 129)
+    // console.log(data);
+    const dises = data.map(i => i.sectionDistance || 0)
+    totalDis.value = dises.reduce((pre = 0, cur = 0) => plus(pre, cur))
+  } else {
+    totalDis.value = 0
+  }
 }
 
 // 获取段落
@@ -488,7 +495,7 @@ const update = () => {
       <view class="main-content">
         <view v-if="tab == 0" class="total-con" :style="{paddingTop: '44px'}">段落总距离：<text style="color: #fa4350; font-size: 34rpx;">{{totalDis}} 米</text></view>
         <scroll-view scroll-y class="scroll-y">
-          <view class="list-con" :style="{paddingTop: tab == 0 ? '0' : '42px'}">
+          <view class="list-con" :style="{paddingTop: tab == 0 ? '0' : '42px', paddingBottom: tab == 0 ? '60px' : '0'}">
             <BaseInfoCard v-for="i in list" :key="i.id" :item="i.raw" :tab="tab" @del="delItem" />
           </view>
 
