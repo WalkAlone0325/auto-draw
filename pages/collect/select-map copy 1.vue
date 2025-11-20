@@ -1,25 +1,73 @@
 <script setup>
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import EnvironmentAwareLocationOptimizer from '@/utils/environmentAwareLocationOptimizer.js'
 
 const scale = ref(20)
-const latitude = ref(0)
-const longitude = ref(0)
-const markers = ref([
-  {
-    id: 1,
-    latitude: latitude.value,
-    longitude: longitude.value,
-    iconPath: '/static/now-local.png',
-    width: 30,
-    height: 30
-  }
-])
+const latitude = ref(37.73605)
+const longitude = ref(112.56566)
+const markers = ref([])
 const key = ref('')
+const accuracy = ref(0)
 
-const envOptimizer = ref(null)
-const isLoading = ref(false)
+const initMap = () => {
+  uni.getLocation({
+    // type: 'gcj02',
+    type: 'wgs84',
+    success: (res) => {
+      latitude.value = res.latitude
+      longitude.value = res.longitude
+      // markers.value = [{
+      //   id: 1,
+      //   latitude: res.latitude,
+      //   longitude: res.longitude,
+      //   iconPath: '/static/now-local.png',
+      //   width: 30,
+      //   height: 30
+      // }]
+    },
+    fail: (res) => {
+      console.log('🚀:>> ', res)
+    }
+  })
+}
+
+const get = () => {
+  uni.startLocationUpdate({
+    // type: 'gcj02',
+    type: 'wgs84',
+    success: () => {
+      uni.onLocationChange(function(res) {
+        if(accuracy.value !== 0 && res.accuracy > accuracy.value) {
+          return
+        }
+        accuracy.value = res.accuracy
+        console.log('🚀:>> ', res)
+        latitude.value = res.latitude
+        longitude.value = res.longitude
+        markers.value = [{
+          id: 1,
+          latitude: res.latitude,
+          longitude: res.longitude,
+          iconPath: '/static/now-local.png',
+          width: 30,
+          height: 30
+        }]
+        if(res.accuracy < 30) {
+          uni.stopLocationUpdate()
+          return
+        }
+      })
+    },
+    fail: (res) => {
+      console.log('🚀:>> ', res)
+    }
+  })
+}
+
+const clickLocal = () => {
+  // initMap()
+  get()
+}
 
 const clickSubmit = () => {
   uni.navigateBack({
@@ -30,72 +78,27 @@ const clickSubmit = () => {
   })
 }
 
-const clickGetEnvLocation = async () => {
-  console.log('点击获取环境优化定位')
-  try {
-    uni.showLoading({ title: '获取定位中...' })
-    await getLocation(envOptimizer.value, 'environment');
-  } catch (error) {
-    console.error('获取环境优化定位失败:', error)
-    uni.showToast({
-      title: '定位失败，请检查权限和网络',
-      icon: 'none'
-    })
-  } finally {
-    uni.hideLoading()
-  }
-}
-
-// 设置标记位置
-const setMarkersLocation = (res) => {
-  latitude.value = res.latitude
-  longitude.value = res.longitude
-  markers.value[0].latitude = res.latitude
-  markers.value[0].longitude = res.longitude
-}
-
-const getLocation = async (optimizer, type) => {
-  isLoading.value = true
-
-  try {
-    let locationResult
-    if (type === 'environment') {
-      locationResult = await optimizer.getEnvironmentOptimizedLocation()
-    } else if (type === 'standard') {
-      locationResult = await optimizer.getOptimizedAndroidLocation({
-        strategy: 'hybrid',
-        timeout: 15000,
-        maxAttempts: 4,
-        minAccuracy: 25,
-        enableHistoryOptimization: true
-      })
-    }
-
-    console.log('优化定位结果:', locationResult)
-    setMarkersLocation(locationResult)
-  } catch (error) {
-    console.error('优化定位失败:', error)
-    uni.showToast({
-      title: '定位失败，请检查权限和网络',
-      icon: 'none'
-    })
-  } finally {
-    isLoading.value = false
+const regionchange = (e) => {
+  const { type, centerLocation } = e.detail
+  if (type === 'end') {
+    markers.value[0].latitude = centerLocation.latitude
+    markers.value[0].longitude = centerLocation.longitude
   }
 }
 
 onLoad((param) => {
   key.value = param.key
-  envOptimizer.value = new EnvironmentAwareLocationOptimizer()
-  clickGetEnvLocation()
+  initMap()
+  get()
 })
 </script>
 
 <template>
   <view class="select-map-page">
-    <map :latitude="latitude" :longitude="longitude" :markers="markers" :scale="scale" :show-location="true">
+    <map :latitude="latitude" :longitude="longitude" :markers="markers" :scale="scale" :show-location="true"
+      @regionchange="regionchange">
       <view class="control-con">
-        <view class="local" @click="clickGetEnvLocation">
+        <view class="local" @click="clickLocal">
           <image class="local-img" src="/static/local.png"></image>
         </view>
       </view>
@@ -104,13 +107,13 @@ onLoad((param) => {
         <view class="local-item">
           <view class="local-item-con">
             <view class="local-item-title">纬度坐标</view>
-            <view class="local-item-desc">{{ latitude }}</view>
+            <view class="local-item-desc">{{ markers[0].latitude }}</view>
           </view>
         </view>
         <view class="local-item">
           <view class="local-item-con">
             <view class="local-item-title">经度坐标</view>
-            <view class="local-item-desc">{{ longitude }}</view>
+            <view class="local-item-desc">{{ markers[0].longitude }}</view>
           </view>
         </view>
         <view class="btn-con">
