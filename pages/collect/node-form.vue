@@ -2,6 +2,7 @@
 import { ref, watchEffect } from 'vue'
 import { getTypeApi, getDictApi, getSpecApi, getAttrApi, getCodeApi, addNodeApi, getNodeDetailApi, updateNodeApi, createNodeDefaultApi, copyNodeDefaultApi } from '@/api'
 import { onLoad, onShow } from '@dcloudio/uni-app'
+import { isArray } from '../../uni_modules/luch-request/utils'
 
 const model = ref({
   nodeCode: '',
@@ -96,9 +97,17 @@ const handleSubmit = async () => {
   loading.value = true
   const { valid } = await form.value.validate()
   if (valid) {
+      let a
+      if(model.value.nodeSpecificationId) {
+        a = Array.isArray(model.value.nodeSpecificationId) ? model.value.nodeSpecificationId[0] : model.value.nodeSpecificationId
+      } else {
+        a = ''
+      }
+      console.log(a, typeof a);
     if (model.value.projectStationLineNodeId) {
       const res = await updateNodeApi({
         ...model.value,
+        nodeSpecificationId: a,
         projectStationLineId: curId.value
       })
       if (res.code === 200) {
@@ -118,6 +127,7 @@ const handleSubmit = async () => {
     } else {
       const res = await addNodeApi({
         ...model.value,
+        nodeSpecificationId: a,
         projectStationLineId: curId.value
       })
       if (res.code === 200) {

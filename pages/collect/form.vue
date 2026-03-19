@@ -397,11 +397,19 @@ const curId = ref('')
 const distanceLoading = ref(false)
 
 const handleSubmit = async () => {
-  loading.value = true
+  // loading.value = true
   const { valid } = await form.value.validate()
   if (valid) {
+    let a
+    if(model.value.nodeSpecificationId) {
+      a = Array.isArray(model.value.nodeSpecificationId) ? model.value.nodeSpecificationId[0] : model.value.nodeSpecificationId
+    } else {
+      a = ''
+    }
+    console.log(a, typeof a);
     const res = await addNodeApi({
       ...model.value,
+      nodeSpecificationId: a,
       projectStationLineId: curId.value
     })
     if (res.code === 200) {
