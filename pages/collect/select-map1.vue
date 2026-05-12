@@ -58,6 +58,7 @@ export default {
     return {
       location: null,
       isLoading: false,
+      isGettingLocation: false,
       optimizationLog: [],
       locationOptimizer: null,
       envOptimizer: null,
@@ -70,17 +71,40 @@ export default {
     this.envOptimizer = new EnvironmentAwareLocationOptimizer();
   },
 
+  onUnload() {
+    if (this.locationOptimizer) {
+      this.locationOptimizer.destroy();
+      this.locationOptimizer = null;
+    }
+    if (this.envOptimizer) {
+      this.envOptimizer.destroy();
+      this.envOptimizer = null;
+    }
+    this.isGettingLocation = false;
+  },
+
   methods: {
     async onGetOptimizedLocation() {
+      // 防止重复调用
+      if (this.isGettingLocation || this.isLoading) {
+        console.log('定位正在进行中，忽略重复点击');
+        return;
+      }
       await this.getLocation(this.locationOptimizer, 'standard');
     },
 
     async onGetEnvironmentOptimizedLocation() {
+      // 防止重复调用
+      if (this.isGettingLocation || this.isLoading) {
+        console.log('定位正在进行中，忽略重复点击');
+        return;
+      }
       await this.getLocation(this.envOptimizer, 'environment');
     },
 
     async getLocation(optimizer, type) {
       this.isLoading = true;
+      this.isGettingLocation = true;
 
       try {
         const startTime = Date.now();
@@ -91,10 +115,10 @@ export default {
         } else if (type === 'standard') {
           location = await optimizer.getOptimizedAndroidLocation({
             strategy: 'hybrid',
-            timeout: 15000,
-            maxAttempts: 4,
-            minAccuracy: 25,
-            enableHistoryOptimization: true
+            timeout: 5000, // 减少超时
+            maxAttempts: 2, // 减少尝试次数
+            minAccuracy: 50,
+            enableHistoryOptimization: false // 禁用历史优化
           });
         }
 
@@ -106,12 +130,25 @@ export default {
 
       } catch (error) {
         console.error('优化定位失败:', error);
+
+        // 根据错误类型提供更友好的提示
+        let message = '定位失败，请检查权限和网络';
+        if (error.code === 1) {
+          message = '定位权限被拒绝，请在设置中开启';
+        } else if (error.code === 2) {
+          message = '定位服务未开启，请在设置中开启定位服务';
+        } else if (error.message && error.message.includes('定位正在进行中')) {
+          message = '定位正在进行中，请稍候...';
+        }
+
         uni.showToast({
-          title: '定位失败，请检查权限和网络',
-          icon: 'none'
+          title: message,
+          icon: 'none',
+          duration: 2000
         });
       } finally {
         this.isLoading = false;
+        this.isGettingLocation = false;
       }
     },
 
