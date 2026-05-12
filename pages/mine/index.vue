@@ -63,17 +63,26 @@ const logout = () => {
     }
   })
 }
+
+const clickToLogin = () => {
+  uni.reLaunch({
+    url: '/pages/login/index'
+  })
+}
 </script>
 
 
 <template>
   <view class="mine-page">
-    <view class="mine-header" @click="clickInfo">
+    <view class="mine-header">
       <view class="header-left">
         <image class="avatar" :src="user.avatar"></image>
-        <view class="info">
+        <view class="info" v-if="token" @click="clickInfo">
           <view class="name">{{ user.nickName }}</view>
           <view class="sex">性别：{{ user.sex == 0 ? '男' : '女' }}</view>
+        </view>
+        <view class="info" style="padding-top: 0;" v-else @click="clickToLogin">
+          去登录
         </view>
       </view>
       <view class="header-right">

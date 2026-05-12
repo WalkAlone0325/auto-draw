@@ -93,18 +93,22 @@ const handleOneLogin = async () => {
     oneLoading.value = false
   }
 }
+
+const clickToHome = () => {
+  uni.switchTab({
+    url: '/pages/index/index'
+  })
+}
 </script>
 
 <template>
   <view class="login-page">
-    <!-- <wd-navbar :bordered="false" fixed placeholder safeAreaInsetTop>
+    <wd-navbar title=" " fixed safe-area-inset-top custom-class="navbar-con">
       <template #left>
+        <wd-icon @click="clickToHome" name="home" size="24px" class="wd-navbar__arrow" />
       </template>
-<template #title>
-        <view class="lg-title">登录</view>
-      </template>
-</wd-navbar> -->
-
+    </wd-navbar>
+    
     <view class="one-login" v-if="oneLogin">
       <view class="title">
         <view>您好，欢迎登录！</view>
@@ -139,10 +143,14 @@ const handleOneLogin = async () => {
 <style lang="scss" scoped>
 .login-page {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  // display: flex;
+  // flex-direction: column;
+  // justify-content: space-between;
   background-color: #fff;
+  
+  .navbar-con {
+    float: right;
+  }
 
   .title {
     padding-top: 500rpx;
