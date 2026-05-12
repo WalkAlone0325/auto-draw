@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { getParagraphListApi, getNodeListApi, deleteSectionApi, deleteNodeApi, publishBatchApi } from '@/api'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { plus } from '@/utils'
 
 const scale = ref(20)
@@ -11,17 +11,105 @@ const markers = ref([])
 const polyline = ref([])
 const totalDis = ref(0)
 
-const initMap = () => {
-  uni.getLocation({
-    type: 'gcj02',
-    success: (res) => {
-      latitude.value = res.latitude
-      longitude.value = res.longitude
-    },
-    fail: (res) => {
-      console.log('🚀:>> ', res)
+// 防止重复定位
+let isGettingLocation = false
+
+// 检查定位权限
+const checkLocationPermission = () => {
+  return new Promise((resolve) => {
+    uni.getSetting({
+      success: (res) => {
+        if (res.authSetting['scope.userLocation']) {
+          resolve(true);
+        } else if (res.authSetting['scope.userLocation'] === false) {
+          // 权限被拒绝
+          uni.showModal({
+            title: '定位权限被拒绝',
+            content: '需要在设置中开启定位权限，否则无法使用定位功能',
+            confirmText: '去设置',
+            success: (modalRes) => {
+              if (modalRes.confirm) {
+                uni.openSetting();
+              }
+              resolve(false);
+            }
+          });
+        } else {
+          // 首次请求权限
+          uni.authorize({
+            scope: 'scope.userLocation',
+            success: () => resolve(true),
+            fail: () => {
+              uni.showToast({
+                title: '定位权限被拒绝',
+                icon: 'none'
+              });
+              resolve(false);
+            }
+          });
+        }
+      },
+      fail: () => {
+        resolve(false);
+      }
+    });
+  });
+};
+
+const initMap = async () => {
+  // 防止重复调用
+  if (isGettingLocation) {
+    console.log('定位正在进行中，忽略重复点击');
+    return;
+  }
+
+  isGettingLocation = true;
+
+  try {
+    // 检查权限
+    const hasPermission = await checkLocationPermission();
+    if (!hasPermission) {
+      isGettingLocation = false;
+      return;
     }
-  })
+
+    uni.showLoading({ title: '获取定位中...' });
+
+    // 获取定位（减少超时时间）
+    const res = await new Promise((resolve, reject) => {
+      uni.getLocation({
+        type: 'gcj02',
+        isHighAccuracy: true,
+        timeout: 8000, // 减少超时时间
+        success: (res) => resolve(res),
+        fail: (error) => reject(error)
+      });
+    });
+
+    latitude.value = res.latitude;
+    longitude.value = res.longitude;
+    console.log('定位成功:', res);
+
+  } catch (error) {
+    console.error('定位失败:', error);
+
+    // 根据错误类型提供更友好的提示
+    let message = '定位失败，请检查权限和网络';
+    if (error.code === 1) {
+      message = '定位权限被拒绝，请在设置中开启';
+    } else if (error.code === 2) {
+      message = '定位服务未开启，请在设置中开启定位服务';
+    }
+
+    uni.showToast({
+      title: message,
+      icon: 'none',
+      duration: 2000
+    });
+  } finally {
+    uni.hideLoading();
+    isGettingLocation = false;
+  }
 }
 
 const clickLocal = () => {
@@ -66,6 +154,10 @@ onLoad(async (option) => {
     await getNodeList()
     uni.hideLoading()
   }
+})
+
+onUnload(() => {
+  isGettingLocation = false;
 })
 
 const tab = ref(0)

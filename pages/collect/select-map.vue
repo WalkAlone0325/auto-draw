@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
-import EnvironmentAwareLocationOptimizer from '@/utils/environmentAwareLocationOptimizer.js'
+import { onLoad, onUnload } from '@dcloudio/uni-app'
 
 const scale = ref(20)
 const latitude = ref(0)
@@ -30,11 +29,29 @@ const clickSubmit = () => {
   })
 }
 
+const normalizeAndroidCoordinates = (latitude, longitude, accuracy) => {
+    let decimalPlaces;
+    
+    if (accuracy <= 10) {
+      decimalPlaces = 7;
+    } else if (accuracy <= 50) {
+      decimalPlaces = 6;
+    } else {
+      decimalPlaces = 5;
+    }
+    
+    return {
+      latitude: Number(parseFloat(latitude).toFixed(decimalPlaces)),
+      longitude: Number(parseFloat(longitude).toFixed(decimalPlaces)),
+      originalLatitude: latitude,
+      originalLongitude: longitude
+    };
+  }
+
 const clickGetEnvLocation = async () => {
-  console.log('点击获取环境优化定位')
   try {
     uni.showLoading({ title: '获取定位中...' })
-    await getLocation(envOptimizer.value, 'environment');
+    await getLocation()
   } catch (error) {
     console.error('获取环境优化定位失败:', error)
     uni.showToast({
@@ -54,25 +71,24 @@ const setMarkersLocation = (res) => {
   markers.value[0].longitude = res.longitude
 }
 
-const getLocation = async (optimizer, type) => {
+const getLocation = async () => {
   isLoading.value = true
 
   try {
-    let locationResult
-    if (type === 'environment') {
-      locationResult = await optimizer.getEnvironmentOptimizedLocation()
-    } else if (type === 'standard') {
-      locationResult = await optimizer.getOptimizedAndroidLocation({
-        strategy: 'hybrid',
-        timeout: 15000,
-        maxAttempts: 4,
-        minAccuracy: 25,
-        enableHistoryOptimization: true
-      })
-    }
-
-    console.log('优化定位结果:', locationResult)
-    setMarkersLocation(locationResult)
+    uni.getLocation({
+      type: 'gcj02',
+      isHighAccuracy: true,
+      altitude: false,
+      highAccuracyExpireTime: 20000,
+      success: (res) => {
+        const handlerRes = normalizeAndroidCoordinates(res.latitude, res.longitude, res.accuracy)
+        console.log('优化定位结果:', res, handlerRes)
+        setMarkersLocation(handlerRes)
+      },
+      fail: (err) => {
+        console.log(err)
+      }
+    })
   } catch (error) {
     console.error('优化定位失败:', error)
     uni.showToast({
@@ -86,8 +102,10 @@ const getLocation = async (optimizer, type) => {
 
 onLoad((param) => {
   key.value = param.key
-  envOptimizer.value = new EnvironmentAwareLocationOptimizer()
   clickGetEnvLocation()
+})
+onUnload(() => {
+  uni.offLocationChange()
 })
 </script>
 
